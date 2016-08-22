@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>tools</artifactId>
+        <groupId>com.cui</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jdbc</artifactId>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-pool2 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.4.2</version>
+        </dependency>
+
+
+
+    </dependencies>
+
+
+    <repositories>
+        <repository>
+            <id>central</id>  <!--注：maven自带的中央仓库使用的id是central，如果其他仓库使用该id，则会覆盖中央仓库。-->
+            <name>OSChina repository</name>
+            <url>http://maven.oschina.net/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>   <!--注：表示开启osc仓库的发布版本下载，默认值是true-->
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>  <!--注：表示关闭osc仓库的快照版本下载，默认值是false-->
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-net-cn</id>
+            <name>Maven China Mirror</name>
+            <url>http://maven.net.cn/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>
