@@ -11,11 +11,15 @@
 
     <modules>
         <module>coderpc</module>
+        <module>codejdbc</module>
     </modules>
 
     <properties>
         <junit.version>4.12</junit.version>
         <logback.version>1.2.3</logback.version>
+        <mysql.version>6.0.3</mysql.version>
+        <dbcp2.version>2.1.1</dbcp2.version>
+        <pool2.version>2.4.2</pool2.version>
     </properties>
 
     <dependencyManagement>
@@ -38,6 +42,25 @@
                 <version>${logback.version}</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-dbcp2</artifactId>
+                <version>${dbcp2.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-pool2 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${pool2.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
