@@ -236,4 +236,29 @@ public class OrdUser {
     public void setOnlineAccountNo(String onlineAccountNo) {
         this.onlineAccountNo = onlineAccountNo;
     }
+
+    @Override
+    public String toString() {
+        return "OrdUser{" +
+                "id=" + id +
+                ", uuid='" + uuid + '\'' +
+                ", createUser=" + createUser +
+                ", createTime=" + createTime +
+                ", updateUser=" + updateUser +
+                ", updateTime=" + updateTime +
+                ", disabled=" + disabled +
+                ", remark='" + remark + '\'' +
+                ", orderBy=" + orderBy +
+                ", username='" + username + '\'' +
+                ", loginPwd='" + loginPwd + '\'' +
+                ", dealPwd='" + dealPwd + '\'' +
+                ", mobile='" + mobile + '\'' +
+                ", honorLevel='" + honorLevel + '\'' +
+                ", salary=" + salary +
+                ", isQizha=" + isQizha +
+                ", openId='" + openId + '\'' +
+                ", nonobankUserid='" + nonobankUserid + '\'' +
+                ", onlineAccountNo='" + onlineAccountNo + '\'' +
+                '}';
+    }
 }
