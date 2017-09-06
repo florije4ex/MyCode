@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * mybatis原始开发测试
+ * mybatis原始配置方式开发测试
  * Created by cuishixiang on 2017-09-05.
  */
 public class MybatisTest {

@@ -21,6 +21,7 @@
     <!--加载映射文件-->
     <mappers>
         <mapper resource="config/sqlmap/OrdUser.xml"/>
+        <mapper resource="config/sqlmap/OrdUser2.xml"/>
     </mappers>
 
 </configuration>
