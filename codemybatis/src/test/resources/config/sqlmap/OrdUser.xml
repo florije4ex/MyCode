@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：命名空间，用于隔离sql，还有一个很重要的作用，后面会讲 -->
+<mapper namespace="test">
+
+    <!-- id:statement的id 或者叫做sql的id-->
+    <!-- parameterType:声明输入参数的类型 -->
+    <!-- resultType:声明输出结果的类型，应该填写pojo的全路径 -->
+    <!-- #{}：输入参数的占位符，相当于jdbc的？ -->
+    <select id="queryUserById" parameterType="int" resultType="com.cui.mybatis.dataobject.OrdUser">
+        SELECT * FROM `ORD_USER` WHERE id  = #{id}
+    </select>
+
+
+</mapper>

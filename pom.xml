@@ -12,6 +12,9 @@
     <modules>
         <module>coderpc</module>
         <module>codejdbc</module>
+        <module>codetest</module>
+        <module>codejvm</module>
+        <module>codemybatis</module>
     </modules>
 
     <properties>
@@ -20,6 +23,10 @@
         <mysql.version>6.0.3</mysql.version>
         <dbcp2.version>2.1.1</dbcp2.version>
         <pool2.version>2.4.2</pool2.version>
+        <mybatis.version>3.4.5</mybatis.version>
+        <mybatis-spring.version>1.3.1</mybatis-spring.version>
+        <druid.version>1.1.3</druid.version>
+        <spring.version>4.3.5.RELEASE</spring.version>
     </properties>
 
     <dependencyManagement>
@@ -60,6 +67,40 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
                 <version>${pool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>${mybatis-spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
             </dependency>
 
         </dependencies>
