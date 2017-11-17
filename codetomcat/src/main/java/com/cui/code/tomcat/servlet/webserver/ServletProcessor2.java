@@ -13,8 +13,8 @@ import java.net.URLStreamHandler;
  * servlet处理
  * Created by cuishixiang on 2017-11-16.
  */
-public class ServletProcessor1 {
-    private static final Logger logger = LoggerFactory.getLogger(ServletProcessor1.class);
+public class ServletProcessor2 {
+    private static final Logger logger = LoggerFactory.getLogger(ServletProcessor2.class);
 
     /**
      * servlet处理方法
@@ -41,9 +41,11 @@ public class ServletProcessor1 {
         }
 
         try {
-//            Class myClass = loader.loadClass("com.cui.code.tomcat.servlet.webserver." + servletName);
             Class myClass = Class.forName("com.cui.code.tomcat.servlet.webserver." + servletName);
             Servlet servlet = (Servlet) myClass.newInstance();
+            RequestFacade requestFacade = new RequestFacade(request);
+            ResponseFacade responseFacade = new ResponseFacade(response);
+
             /*
              * 此处的问题：将request和response对象传给了servlet对象的service方法，
 			 * 如果使用servlet的程序员知道其原理，然后又将这两个对象向下转型成Request和Response对象，
@@ -53,7 +55,7 @@ public class ServletProcessor1 {
 			改进：使用facade外观设计模式：RequestFacade，此类也实现ServletRequest，并将request对象传给他，
 				然后在此类所有的重载方法中调用request对象的同名方法
 			*/
-            servlet.service(request, response);
+            servlet.service(requestFacade, responseFacade);
         } catch (ClassNotFoundException e) {
             logger.error("未找到类{}：", servletName, e);
         } catch (Exception e) {
