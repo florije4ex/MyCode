@@ -25,6 +25,8 @@ public interface OrdUserMapper {
 
     int saveUser(OrdUser ordUser);
 
+    int saveUserReturnKey(OrdUser ordUser);
+
     int updateUser(OrdUser ordUser);
 
     int deleteUserById(Integer id);
