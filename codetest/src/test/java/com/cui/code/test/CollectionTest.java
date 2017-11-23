@@ -30,7 +30,7 @@ public class CollectionTest {
      */
     @Test
     public void testArrays2List() {
-        List<Integer> list =new ArrayList<>(Arrays.asList(123, 234, 345));
+        List<Integer> list = new ArrayList<>(Arrays.asList(123, 234, 345));
         list.add(789);
         System.out.println(list);
     }
@@ -79,6 +79,19 @@ public class CollectionTest {
 
     }
 
+
+    @Test
+    public void testDataTypeOPeration() {
+        List<Integer> integerList = new ArrayList<>();
+        integerList.add(111);
+        integerList.add(222);
+        integerList.add(333);
+        integerList.add(444);
+
+        boolean remove = integerList.remove("222");
+        System.out.println(remove);
+        integerList.forEach(System.out::println);
+    }
 
 
 }

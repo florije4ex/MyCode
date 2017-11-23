@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/beans/spring-context.xsd">
+
+    <bean id="userVO" name="@userVO2" class="biz.vo.UserVO"/>
+
+    <bean id="userVO2" class="biz.vo.UserVO" scope="prototype"/>
+
+    <!--1、空参默认构造创建bean-->
+    <bean name="studentVO" class="biz.vo.StudentVO"/>
+
+    <!--2、静态工厂方法创建bean-->
+    <bean id="userVO3" class="biz.vo.VOFactory" factory-method="createUserVO"/>
+
+    <!--3、实例工厂方法创建bean-->
+    <bean id="voFactory" class="biz.vo.VOFactory"/>
+    <bean id="studentVO2" factory-bean="voFactory" factory-method="createStudent"/>
+
+    <bean id="userVO5" class="biz.vo.UserVO" init-method="init" destroy-method="destroy"/>
+
+
+    <import resource="config/applicationContext.xml"/>
+
+    <context:component-scan base-package="biz"/>
+
+</beans>
