@@ -34,6 +34,7 @@
         <webmagic.version>0.7.3</webmagic.version>
         <jsoup.version>1.10.3</jsoup.version>
         <servlet.version>3.1.0</servlet.version>
+        <dubbo.version>2.5.7</dubbo.version>
     </properties>
 
     <dependencyManagement>
@@ -160,6 +161,12 @@
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${servlet.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${dubbo.version}</version>
             </dependency>
 
         </dependencies>

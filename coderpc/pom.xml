@@ -12,4 +12,10 @@
     <artifactId>code-rpc</artifactId>
 
 
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+        </dependency>
+    </dependencies>
 </project>
