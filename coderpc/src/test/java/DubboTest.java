@@ -14,7 +14,7 @@ public class DubboTest {
     public void testDubbo() throws IOException {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"classpath:/spring/dubbo-provider.xml"});
         context.start();
-        System.in.read(); // press any key to exit
+//        System.in.read(); // press any key to exit
 
 
         ClassPathXmlApplicationContext context2 = new ClassPathXmlApplicationContext("classpath:/spring/dubbo-consumer.xml");
