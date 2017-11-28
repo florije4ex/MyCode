@@ -10,5 +10,5 @@
     <dubbo:registry address="zookeeper://localhost:2181"/>
 
     <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
-    <dubbo:reference id="orderFacade" interface="com.cui.code.rpc.dubbo.facade.OrderFacade" url="dubbo://localhost:20880"/>
+    <dubbo:reference id="orderFacade" interface="com.cui.code.dubbo.facade.OrderFacade" url="dubbo://localhost:20880"/>
 </beans>

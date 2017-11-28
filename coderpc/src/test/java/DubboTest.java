@@ -1,4 +1,4 @@
-import com.cui.code.rpc.dubbo.facade.OrderFacade;
+import com.cui.code.dubbo.facade.OrderFacade;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

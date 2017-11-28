@@ -29,8 +29,8 @@
     <!-- 等待时间，重试几次 -->
     <dubbo:provider timeout="120000" retries="0"/>
     <!-- 声明需要暴露的服务接口 -->
-    <dubbo:service interface="com.cui.code.rpc.dubbo.facade.OrderFacade" ref="orderFacade"/>
+    <dubbo:service interface="com.cui.code.dubbo.facade.OrderFacade" ref="orderFacade"/>
 
     <!-- 和本地bean一样实现服务,也可使用注解来配置吧 -->
-    <bean id="orderFacade" class="com.cui.code.rpc.dubbo.facade.impl.OrderFacadeImpl"/>
+    <bean id="orderFacade" class="com.cui.code.dubbo.facade.impl.OrderFacadeImpl"/>
 </beans>

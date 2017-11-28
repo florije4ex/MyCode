@@ -1,6 +1,6 @@
-package com.cui.code.rpc.dubbo.facade.impl;
+package com.cui.code.dubbo.facade.impl;
 
-import com.cui.code.rpc.dubbo.facade.OrderFacade;
+import com.cui.code.dubbo.facade.OrderFacade;
 
 import java.util.UUID;
 

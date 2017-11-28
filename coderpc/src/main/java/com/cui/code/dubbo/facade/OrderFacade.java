@@ -1,4 +1,4 @@
-package com.cui.code.rpc.dubbo.facade;
+package com.cui.code.dubbo.facade;
 
 /**
  * 服务接口，定义成单独的模块，参见http://dubbo.io/ <br>
