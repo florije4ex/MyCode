@@ -20,6 +20,7 @@
         <module>codespring</module>
         <module>codetomcat</module>
         <module>codezookeeper</module>
+        <module>codeshiro</module>
     </modules>
 
     <properties>
@@ -38,6 +39,8 @@
         <dubbo.version>2.5.7</dubbo.version>
         <zookeeper.version>3.4.10</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
+        <shiro-core.version>1.4.0</shiro-core.version>
+        <commons-logging.version>1.2</commons-logging.version>
     </properties>
 
     <dependencyManagement>
@@ -182,6 +185,18 @@
                 <groupId>com.101tec</groupId>
                 <artifactId>zkclient</artifactId>
                 <version>${zkclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-core</artifactId>
+                <version>${shiro-core.version}</version>
             </dependency>
 
         </dependencies>
