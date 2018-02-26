@@ -21,6 +21,7 @@
         <module>codetomcat</module>
         <module>codezookeeper</module>
         <module>codeshiro</module>
+        <module>codelogback</module>
     </modules>
 
     <properties>
