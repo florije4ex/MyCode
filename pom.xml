@@ -22,6 +22,7 @@
         <module>codezookeeper</module>
         <module>codeshiro</module>
         <module>codelogback</module>
+        <module>codemongo</module>
     </modules>
 
     <properties>
@@ -42,6 +43,7 @@
         <zkclient.version>0.10</zkclient.version>
         <shiro-core.version>1.4.0</shiro-core.version>
         <commons-logging.version>1.2</commons-logging.version>
+        <mongodb-driver.version>3.4.3</mongodb-driver.version>
     </properties>
 
     <dependencyManagement>
@@ -198,6 +200,13 @@
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-core</artifactId>
                 <version>${shiro-core.version}</version>
+            </dependency>
+
+            <!--mongodb依赖-->
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongodb-driver</artifactId>
+                <version>${mongodb-driver.version}</version>
             </dependency>
 
         </dependencies>
