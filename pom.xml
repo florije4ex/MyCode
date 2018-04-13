@@ -44,6 +44,7 @@
         <shiro-core.version>1.4.0</shiro-core.version>
         <commons-logging.version>1.2</commons-logging.version>
         <mongodb-driver.version>3.4.3</mongodb-driver.version>
+        <joda-time.version>2.9.9</joda-time.version>
     </properties>
 
     <dependencyManagement>
@@ -209,6 +210,12 @@
                 <version>${mongodb-driver.version}</version>
             </dependency>
 
+            <!--joda time 依赖-->
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.9.9</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
