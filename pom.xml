@@ -46,6 +46,7 @@
         <mongodb-driver.version>3.4.3</mongodb-driver.version>
         <joda-time.version>2.9.9</joda-time.version>
         <fastjson.version>1.2.33</fastjson.version>
+        <google-maps-services.version>0.2.6</google-maps-services.version>
     </properties>
 
     <dependencyManagement>
@@ -223,6 +224,13 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
+            </dependency>
+
+            <!--google map 服务依赖-->
+            <dependency>
+                <groupId>com.google.maps</groupId>
+                <artifactId>google-maps-services</artifactId>
+                <version>${google-maps-services.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
