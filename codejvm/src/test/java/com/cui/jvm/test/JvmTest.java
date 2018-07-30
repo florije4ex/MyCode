@@ -33,6 +33,8 @@ public class JvmTest {
 
     /**
      * 测试堆内存溢出异常
+     * HeapDumpOnOutOfMemoryError：让JVM在内存溢出时dump出当前的内存堆转储快照以便事后分析
+     * dump生成的.hprof文件默认放到了该项目目录下面
      * VM Args：-Xms20m -Xmx20m -XX:+HeapDumpOnOutOfMemoryError
      */
     @Test

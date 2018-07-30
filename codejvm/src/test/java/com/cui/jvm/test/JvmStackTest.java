@@ -18,6 +18,7 @@ public class JvmStackTest {
 
     /**
      * 测试栈溢出错误
+     * -Xss256K
      */
     @Test
     public void testStackLength() {
@@ -25,7 +26,7 @@ public class JvmStackTest {
             recurses();
         } catch (Throwable e) {//注意这里是error
             System.out.println(stackLength);
-//            throw e;
+            throw e;
         }
     }
 }
