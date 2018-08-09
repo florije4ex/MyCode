@@ -36,10 +36,10 @@ public class IdCardTest {
 
         int nowYear = LocalDate.now().getYear();
 
-        String areaCode = "32XXXX";
+        String areaCode = "XXXXXX";
         String suffix = "XXX";
-        char validateCode = '8';
-        for (int year = 1910; year <= nowYear; year++) {
+        char validateCode = 'X';
+        for (int year = 1990; year <= nowYear; year++) {
             for (int month = 1; month <= 12; month++) {
                 for (int day = 1; day < 31; day++) {
                     String monthCode = month < 10 ? "0" + month : month + "";
@@ -49,6 +49,30 @@ public class IdCardTest {
                     if (compare == 0) {
                         System.out.println(birthdayCode);
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * 计算身份证生日：火车票上面的信息
+     * 已知：XXXXXX XXXX**** XXXX
+     */
+    @Test
+    public void testCalcBirthday2() {
+        String areaCode = "XXXXXX";
+        String year = "XXXX";
+        String suffix = "XXX";
+        char validateCode = '9';
+
+        for (int month = 1; month <= 12; month++) {
+            for (int day = 1; day < 31; day++) {
+                String monthCode = month < 10 ? "0" + month : month + "";
+                String dayCode = day < 10 ? "0" + day : day + "";
+                String birthdayCode = year + monthCode + dayCode;
+                int compare = Character.compare(validateCode, getValidateCode(areaCode + birthdayCode + suffix));
+                if (compare == 0) {
+                    System.out.println(birthdayCode);
                 }
             }
         }
@@ -131,7 +155,7 @@ public class IdCardTest {
      * 获取身份证检验码
      *
      * @param id17 身份证前17位数字
-     * @return
+     * @return 身份证检验码（最后一位数字）
      */
     private char getValidateCode(String id17) {
         int sum = 0;
