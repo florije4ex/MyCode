@@ -2,6 +2,7 @@ package com.cui.code.test;
 
 import org.junit.Test;
 
+import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -53,5 +54,18 @@ public class LocaleTest {
         ResourceBundle resourceBundle = ResourceBundle.getBundle("message", locale);
         System.out.println(resourceBundle.getString("001"));
 
+    }
+
+    /**
+     * 待格式化的文本中不能有单引号'，否则无法格式化
+     */
+    @Test
+    public void testMessageFormat() {
+        //String message = "You have not permission for this city:{0}";
+        String message = "You don't have permission for this city:{0}";
+        Object[] args = new Object[]{"021"};
+
+        String format = MessageFormat.format(message, args);
+        System.out.println(format);
     }
 }
