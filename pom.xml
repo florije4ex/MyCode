@@ -50,6 +50,7 @@
         <google-maps-services.version>0.2.6</google-maps-services.version>
         <spring-data-mongodb.version>2.0.4.RELEASE</spring-data-mongodb.version>
         <caffeine.version>2.6.2</caffeine.version>
+        <lombok.version>1.18.4</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -248,6 +249,15 @@
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
             </dependency>
+
+            <!-- 提供通用代码 -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
