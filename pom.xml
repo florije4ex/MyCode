@@ -48,6 +48,7 @@
         <fastjson.version>1.2.33</fastjson.version>
         <google-maps-services.version>0.2.6</google-maps-services.version>
         <spring-data-mongodb.version>2.0.4.RELEASE</spring-data-mongodb.version>
+        <caffeine.version>2.6.2</caffeine.version>
     </properties>
 
     <dependencyManagement>
@@ -240,6 +241,12 @@
                 <version>${spring-data-mongodb.version}</version>
             </dependency>
 
+            <!--缓存-->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
