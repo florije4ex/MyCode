@@ -23,6 +23,7 @@
         <module>codeshiro</module>
         <module>codelogback</module>
         <module>codemongo</module>
+        <module>code-netty</module>
     </modules>
 
     <properties>
