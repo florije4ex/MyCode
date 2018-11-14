@@ -79,6 +79,29 @@ public class IdCardTest {
     }
 
     /**
+     * 计算身份证生日：年月，火车票上面的信息
+     * 已知：XXXXXX XX****XX XXXX
+     */
+    @Test
+    public void testCalcYearMonth() {
+        String areaCode = "XXXXXX";
+        String day = "13";
+        String suffix = "006";
+        char validateCode = '5';
+
+        for (int year = 1980; year <= 1998; year++) {
+            for (int month = 1; month <= 12; month++) {
+                String monthCode = month < 10 ? "0" + month : month + "";
+                String birthdayCode = year + monthCode + day;
+                int compare = Character.compare(validateCode, getValidateCode(areaCode + birthdayCode + suffix));
+                if (compare == 0) {
+                    System.out.println(birthdayCode);
+                }
+            }
+        }
+    }
+
+    /**
      * 计算地区，也有重复的
      * 已知条件：****** XXXXXXXX XXXX
      */
