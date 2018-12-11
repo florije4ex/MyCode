@@ -147,13 +147,20 @@ public class HttpTest {
      * @return 日期的id
      */
     private String getSubscribeCalendarId(String subscribeId, String bookDate, String JSESSIONID) {
-        String tianjinURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + subscribeId;
+        String getSubscribeURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + subscribeId;
+        String userPhone = "手机号";
+        String loginPassword = "密码";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
         HttpEntity request = new HttpEntity(httpHeaders);
 
-        String responseString = restTemplate.postForObject(tianjinURL, request, String.class);
+        String responseString = restTemplate.postForObject(getSubscribeURL, request, String.class);
+        // 未登录
+        if (responseString.contains("window.open ('/ITS/itsApp/login.jsp','_top')")) {
+            lynkLogin(userPhone, loginPassword, JSESSIONID);
+            return null;
+        }
         Document document = Jsoup.parse(responseString);
         Elements tables = document.getElementsByClass("ticket-info mart20");
         Element table = tables.get(0);
@@ -231,5 +238,31 @@ public class HttpTest {
         //        "\t\"message\": \"成功\",\n" +
         //        "\t\"id\": \"76198\"\n" +
         //        "}"
+    }
+
+    /**
+     * 京津冀旅游年卡登陆
+     */
+    private void lynkLogin(String userPhone, String loginPassword, String JSESSIONID) {
+        String loginURL = "http://zglynk.com/ITS/itsApp/login.action";
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Host", "zglynk.com");
+        httpHeaders.add("Pragma", "no-cache");
+        httpHeaders.add("Cache-Control", "max-age=0");
+        httpHeaders.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
+        httpHeaders.add("Origin", "http://zglynk.com");
+        httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
+        httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/login.jsp");
+        httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.8");
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
+
+        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
+        parameter.add("userPhone", userPhone);
+        parameter.add("loginPassword", loginPassword);
+        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
+
+        String responseBody = restTemplate.postForObject(loginURL, request, String.class);
+        System.out.println(responseBody);
     }
 }
