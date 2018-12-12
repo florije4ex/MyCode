@@ -123,9 +123,9 @@ public class HttpTest {
                 System.out.println(new Date());
             }
             try {
-                bookCardInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
-                if (bookCardInfo != null) {
-                    boolean result = lynkBook(bookCardInfo, JSESSIONID);
+                BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
+                if (bookInfo != null) {
+                    boolean result = lynkBook(bookInfo, JSESSIONID);
                     if (result) {
                         System.out.println(count + "：预约成功，退出循环");
                         System.out.println(new Date());
@@ -175,6 +175,8 @@ public class HttpTest {
                     String subscribeCalendarId = input.attr("value");
                     bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
                     break;
+                } else {
+                    return null;
                 }
             }
         }
