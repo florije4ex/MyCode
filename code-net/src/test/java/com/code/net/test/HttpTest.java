@@ -106,13 +106,14 @@ public class HttpTest {
      */
     @Test
     public void testBookTicket() {
-        // 天津的相声：9   奥林匹克塔：7
-        String subscribeId = "9";
-        // 预约日期
-        String bookDate = "2018-12-14";
         // 预登陆后的JSESSIONID
         String JSESSIONID = "自己登陆后的jsessionid";
-        String cardNo = "填写自己的卡号";
+        BookCardInfo bookCardInfo = new BookCardInfo();
+        bookCardInfo.setCardNo("填写自己的卡号");
+        // 天津的相声：9   奥林匹克塔：7
+        bookCardInfo.setSubscribeId("9");
+        // 预约日期
+        bookCardInfo.setBookDate("2018-12-15");
 
         System.out.println(new Date());
         int count = 0;
@@ -122,9 +123,9 @@ public class HttpTest {
                 System.out.println(new Date());
             }
             try {
-                String subscribeCalendarId = getSubscribeCalendarId(subscribeId, bookDate, JSESSIONID);
-                if (subscribeCalendarId != null) {
-                    boolean result = lynkBook(subscribeId, subscribeCalendarId, cardNo, JSESSIONID);
+                bookCardInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
+                if (bookCardInfo != null) {
+                    boolean result = lynkBook(bookCardInfo, JSESSIONID);
                     if (result) {
                         System.out.println(count + "：预约成功，退出循环");
                         System.out.println(new Date());
@@ -132,7 +133,7 @@ public class HttpTest {
                     }
                 }
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -141,15 +142,12 @@ public class HttpTest {
     /**
      * 获取可预订日期的id
      *
-     * @param subscribeId 景区id
-     * @param bookDate    预定日期
-     * @param JSESSIONID  登陆后的JSESSIONID
+     * @param bookCardInfo 预订卡信息
+     * @param JSESSIONID   登陆后的JSESSIONID
      * @return 日期的id
      */
-    private String getSubscribeCalendarId(String subscribeId, String bookDate, String JSESSIONID) {
-        String getSubscribeURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + subscribeId;
-        String userPhone = "手机号";
-        String loginPassword = "密码";
+    private BookCardInfo getSubscribeCalendarId(BookCardInfo bookCardInfo, String JSESSIONID) {
+        String getSubscribeURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId();
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
@@ -158,22 +156,42 @@ public class HttpTest {
         String responseString = restTemplate.postForObject(getSubscribeURL, request, String.class);
         // 未登录
         if (responseString.contains("window.open ('/ITS/itsApp/login.jsp','_top')")) {
-            lynkLogin(userPhone, loginPassword, JSESSIONID);
+            lynkLogin(JSESSIONID);
             return null;
         }
         Document document = Jsoup.parse(responseString);
         Elements tables = document.getElementsByClass("ticket-info mart20");
+        // 解析日期id
         Element table = tables.get(0);
         Elements trs = table.getElementsByTag("tr");
         for (Element tr : trs) {
             Elements tds = tr.getElementsByTag("td");
             Element date = tds.get(0);
-            if (bookDate.equals(date.text())) {
+            if (bookCardInfo.getBookDate().equals(date.text())) {
                 Element bookTd = tds.get(2);
                 String bookText = bookTd.text();
                 if (bookText.startsWith("可预约")) {
                     Elements input = bookTd.getElementsByTag("input");
-                    return input.attr("value");
+                    String subscribeCalendarId = input.attr("value");
+                    bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
+                    break;
+                }
+            }
+        }
+        //解析cardId
+        Element cardTable = tables.get(1);
+        Element tr = cardTable.getElementsByTag("tr").get(0);
+        Elements tds = tr.getElementsByTag("td");
+        for (Element td : tds) {
+            if (td.text().startsWith(bookCardInfo.getCardNo())) {
+                Elements inputs = td.getElementsByTag("input");
+                for (Element input : inputs) {
+                    String name = input.attr("name");
+                    if (name.startsWith("cardNo_")) {
+                        String cardId = name.substring(7);
+                        bookCardInfo.setCardId(cardId);
+                        return bookCardInfo;
+                    }
                 }
             }
         }
@@ -183,7 +201,7 @@ public class HttpTest {
     /**
      * 京津冀旅游年卡景区预约提交
      */
-    private boolean lynkBook(String subscribeId, String subscribeCalendarId, String cardNo, String JSESSIONID) {
+    private boolean lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
         Map<String, String> statusMap = new HashMap<>();
         statusMap.put("1", "预约成功");
         statusMap.put("2", "预约失败，请重试！");
@@ -201,16 +219,16 @@ public class HttpTest {
         httpHeaders.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
         httpHeaders.add("Origin", "http://zglynk.com");
         httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
-        httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + subscribeId);
+        httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId());
         httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.8");
         httpHeaders.add("Cookie", "JSESSIONID=" + JSESSIONID);
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("subscribeId", subscribeId);
-        parameter.add("subscribeCalendarId", subscribeCalendarId);
-        parameter.add("cardNo_792826", cardNo);
-        parameter.add("cardType_792826", "1");
-        parameter.add("cardId", "792826#" + cardNo);
+        parameter.add("subscribeId", bookCardInfo.getSubscribeId());
+        parameter.add("subscribeCalendarId", bookCardInfo.getSubscribeCalendarId());
+        parameter.add("cardNo_" + bookCardInfo.getCardId(), bookCardInfo.getCardNo());
+        parameter.add("cardType_" + bookCardInfo.getCardId(), "1");
+        parameter.add("cardId", bookCardInfo.getCardId() + "#" + bookCardInfo.getCardNo());
 
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
 
@@ -243,8 +261,10 @@ public class HttpTest {
     /**
      * 京津冀旅游年卡登陆
      */
-    private void lynkLogin(String userPhone, String loginPassword, String JSESSIONID) {
+    private void lynkLogin(String JSESSIONID) {
         String loginURL = "http://zglynk.com/ITS/itsApp/login.action";
+        String userPhone = "手机号";
+        String loginPassword = "密码";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Host", "zglynk.com");
