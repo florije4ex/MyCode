@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cui.code.spider.dal.dao.DoubanGroupDAO">
+
+    <!-- 批量保存group -->
+    <!--group是MySQL关键字，使用时必须加``，换成了douban_group-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `douban_group`(code,name,logo_url,attention_user,group_create_date)
+        VALUES
+        <foreach collection="doubanGroupDOList" item="group" separator=",">
+            (#{group.code},#{group.name},#{group.logoUrl},#{group.attentionUser},#{group.groupCreateDate})
+        </foreach>
+    </insert>
+
+</mapper>
