@@ -1,7 +1,9 @@
 package com.cui.spider.test;
 
 import com.cui.code.spider.pageprocessor.DoubanGroupPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanTopicListPageProcessor;
 import com.cui.code.spider.pipeline.DoubanGroupPipeline;
+import com.cui.code.spider.pipeline.DoubanTopicPipeline;
 import org.junit.Test;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
@@ -82,6 +84,24 @@ public class SpiderTest {
 
         spider.addUrl("https://www.douban.com/group/all?start=11925")
                 .addPipeline(new DoubanGroupPipeline())
+                .thread(3).run();
+    }
+
+    /**
+     * 爬一下豆瓣的话题列表页
+     */
+    @Test
+    public void testDoubanTopic() {
+        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
+        List<Proxy> proxies = new ArrayList<>();
+        proxies.add(new Proxy("219.234.5.128", 3128));
+        httpClientDownloader.setProxyProvider(new SimpleProxyProvider(proxies));
+
+        String groupCode = "635609";
+        Spider spider = Spider.create(new DoubanTopicListPageProcessor());
+        spider.setDownloader(httpClientDownloader);
+        spider.addUrl("https://www.douban.com/group/" + groupCode + "/discussion?start=0")
+                .addPipeline(new DoubanTopicPipeline())
                 .thread(3).run();
     }
 }

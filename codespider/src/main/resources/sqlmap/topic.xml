@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cui.code.spider.dal.dao.DoubanTopicDAO">
+
+    <!-- 批量保存topic -->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `topic`(group_code,topic_id,topic_name,author_id,author_name,reply_count,last_reply_time)
+        VALUES
+        <foreach collection="doubanTopicDOList" item="topic" separator=",">
+            (#{topic.groupCode},#{topic.topicId},#{topic.topicName},#{topic.authorId},#{topic.authorName},
+            #{topic.replyCount},#{topic.lastReplyTime})
+        </foreach>
+    </insert>
+
+</mapper>

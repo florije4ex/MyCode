@@ -28,6 +28,7 @@
     <!--加载映射文件-->
     <mappers>
         <mapper resource="sqlmap/douban_group.xml"/>
+        <mapper resource="sqlmap/topic.xml"/>
     </mappers>
 
 </configuration>
