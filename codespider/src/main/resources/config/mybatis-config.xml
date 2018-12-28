@@ -29,6 +29,7 @@
     <mappers>
         <mapper resource="sqlmap/douban_group.xml"/>
         <mapper resource="sqlmap/topic.xml"/>
+        <mapper resource="sqlmap/group_member.xml"/>
     </mappers>
 
 </configuration>

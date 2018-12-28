@@ -1,7 +1,9 @@
 package com.cui.spider.test;
 
+import com.cui.code.spider.pageprocessor.DoubanGroupMembersPageProcessor;
 import com.cui.code.spider.pageprocessor.DoubanGroupPageProcessor;
 import com.cui.code.spider.pageprocessor.DoubanTopicListPageProcessor;
+import com.cui.code.spider.pipeline.DoubanGroupMembersPipeline;
 import com.cui.code.spider.pipeline.DoubanGroupPipeline;
 import com.cui.code.spider.pipeline.DoubanTopicPipeline;
 import org.junit.Test;
@@ -102,6 +104,27 @@ public class SpiderTest {
         spider.setDownloader(httpClientDownloader);
         spider.addUrl("https://www.douban.com/group/" + groupCode + "/discussion?start=0")
                 .addPipeline(new DoubanTopicPipeline())
+                .thread(3).run();
+    }
+
+    /**
+     * 豆瓣小组的成员信息
+     */
+    @Test
+    public void testDoubanGroupMembers() {
+        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
+        List<Proxy> proxies = new ArrayList<>();
+        proxies.add(new Proxy("61.128.208.94", 3128));
+        httpClientDownloader.setProxyProvider(new SimpleProxyProvider(proxies));
+
+        Spider spider = Spider.create(new DoubanGroupMembersPageProcessor());
+        spider.setDownloader(httpClientDownloader);
+
+        String groupId = "newsreel";
+        int start = 35;
+        String membersURL = "https://www.douban.com/group/" + groupId + "/members?start=" + start;
+        spider.addUrl(membersURL)
+                .addPipeline(new DoubanGroupMembersPipeline())
                 .thread(3).run();
     }
 }

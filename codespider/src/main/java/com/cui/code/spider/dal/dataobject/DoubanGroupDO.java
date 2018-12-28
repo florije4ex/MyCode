@@ -13,6 +13,8 @@ public class DoubanGroupDO {
     private String logoUrl;
     private Integer attentionUser;
     private Date groupCreateDate;
+    private String ownerId;
+    private String ownerName;
     private Date createTime;
     private Date updateTime;
     private String notes;
@@ -65,6 +67,22 @@ public class DoubanGroupDO {
         this.groupCreateDate = groupCreateDate;
     }
 
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -91,17 +109,18 @@ public class DoubanGroupDO {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("DoubanGroupDO{");
-        sb.append("id=").append(id);
-        sb.append(", code='").append(code).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", logoUrl='").append(logoUrl).append('\'');
-        sb.append(", attentionUser=").append(attentionUser);
-        sb.append(", groupCreateDate=").append(groupCreateDate);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", notes='").append(notes).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "DoubanGroupDO{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                ", name='" + name + '\'' +
+                ", logoUrl='" + logoUrl + '\'' +
+                ", attentionUser=" + attentionUser +
+                ", groupCreateDate=" + groupCreateDate +
+                ", ownerId='" + ownerId + '\'' +
+                ", ownerName='" + ownerName + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", notes='" + notes + '\'' +
+                '}';
     }
 }

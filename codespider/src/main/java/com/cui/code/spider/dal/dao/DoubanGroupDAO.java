@@ -18,4 +18,12 @@ public interface DoubanGroupDAO {
      * @return
      */
     int saveBatch(@Param("doubanGroupDOList") List<DoubanGroupDO> doubanGroupDOList);
+
+    /**
+     * update group owner
+     *
+     * @param doubanGroupDO
+     * @return
+     */
+    int updateOwner(DoubanGroupDO doubanGroupDO);
 }

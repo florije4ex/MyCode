@@ -14,4 +14,13 @@
         </foreach>
     </insert>
 
+    <!--更新小组组长-->
+    <update id="updateOwner">
+        update douban_group
+        set
+        owner_id = #{ownerId},
+        owner_name = #{ownerName}
+        where code = #{code}
+    </update>
+
 </mapper>
