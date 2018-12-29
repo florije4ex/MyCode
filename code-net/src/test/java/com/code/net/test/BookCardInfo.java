@@ -1,5 +1,7 @@
 package com.code.net.test;
 
+import java.util.Date;
+
 /**
  * 预订卡信息
  *
@@ -12,6 +14,14 @@ public class BookCardInfo {
     private String bookDate;
     private String subscribeId;
     private String subscribeCalendarId;
+    /**
+     * 是否定时抢票
+     */
+    private boolean timing;
+    /**
+     * 定时开抢时间
+     */
+    private Date timingStartTime;
 
     public String getCardId() {
         return cardId;
@@ -51,5 +61,21 @@ public class BookCardInfo {
 
     public void setSubscribeCalendarId(String subscribeCalendarId) {
         this.subscribeCalendarId = subscribeCalendarId;
+    }
+
+    public boolean isTiming() {
+        return timing;
+    }
+
+    public void setTiming(boolean timing) {
+        this.timing = timing;
+    }
+
+    public Date getTimingStartTime() {
+        return timingStartTime;
+    }
+
+    public void setTimingStartTime(Date timingStartTime) {
+        this.timingStartTime = timingStartTime;
     }
 }

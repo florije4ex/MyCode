@@ -13,6 +13,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -110,10 +114,15 @@ public class HttpTest {
         String JSESSIONID = "自己登陆后的jsessionid";
         BookCardInfo bookCardInfo = new BookCardInfo();
         bookCardInfo.setCardNo("填写自己的卡号");
-        // 天津的相声：9   奥林匹克塔：7
+        // 奥林匹克塔：7  延庆打铁花：8   天津的相声：9  蓝调滑雪预约：14    八达岭野生动物园：15  梦幻影院：16   明珠山庄温泉浴场：17
         bookCardInfo.setSubscribeId("9");
         // 预约日期
         bookCardInfo.setBookDate("2018-12-15");
+        // 开启定时抢票的功能，设置开抢的定时时间
+        bookCardInfo.setTiming(true);
+        LocalDateTime startTime = LocalDateTime.parse("2018-12-31 06:55", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        Instant instant = startTime.atZone(ZoneId.systemDefault()).toInstant();
+        bookCardInfo.setTimingStartTime(Date.from(instant));
 
         System.out.println(new Date());
         int count = 0;
@@ -132,9 +141,18 @@ public class HttpTest {
                         break;
                     }
                 }
-                Thread.sleep(1000);
+                if (bookCardInfo.isTiming() && System.currentTimeMillis() < bookCardInfo.getTimingStartTime().getTime()) {
+                    Thread.sleep(1000 * 60);
+                } else {
+                    Thread.sleep(1000);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
     }
@@ -240,6 +258,7 @@ public class HttpTest {
                 String responseBody = restTemplate.postForObject(bookURL, request, String.class);
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 if ("1".equals(jsonObject.getString("status"))) {
+                    System.out.println(responseBody);
                     return true;
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
