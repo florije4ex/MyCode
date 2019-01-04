@@ -113,9 +113,11 @@ public class HttpTest {
         // 预登陆后的JSESSIONID
         String JSESSIONID = "自己登陆后的jsessionid";
         BookCardInfo bookCardInfo = new BookCardInfo();
-        bookCardInfo.setCardNo("填写自己的卡号");
+        bookCardInfo.addCardNo("预约卡号1");
+        bookCardInfo.addCardNo("预约卡号2");
+        bookCardInfo.addCardNo("预约卡号3");
         // 奥林匹克塔：7  延庆打铁花：8   天津的相声：9  蓝调滑雪预约：14    八达岭野生动物园：15  梦幻影院：16   明珠山庄温泉浴场：17
-        bookCardInfo.setSubscribeId("9");
+        bookCardInfo.setSubscribeId(SubscribeIdEnum.蓝调滑雪预约.getSubscribeId());
         // 预约日期
         bookCardInfo.setBookDate("2018-12-15");
         // 开启定时抢票的功能，设置开抢的定时时间
@@ -176,6 +178,13 @@ public class HttpTest {
         if (responseString.contains("window.open ('/ITS/itsApp/login.jsp','_top')")) {
             lynkLogin(JSESSIONID);
             return null;
+        } else if (responseString.contains("<html>\n" +
+                "<script>\n" +
+                "window.open ('/ITS/itsApp/loginAuthorization.jsp','_top')\n" +
+                "</script>\n" +
+                "</html>\n")) {
+            System.out.println("微信授权已失效，请重新抓取sessionId");
+            return null;
         }
         Document document = Jsoup.parse(responseString);
         Elements tables = document.getElementsByClass("ticket-info mart20");
@@ -200,22 +209,21 @@ public class HttpTest {
         }
         //解析cardId
         Element cardTable = tables.get(1);
-        Element tr = cardTable.getElementsByTag("tr").get(0);
-        Elements tds = tr.getElementsByTag("td");
-        for (Element td : tds) {
-            if (td.text().startsWith(bookCardInfo.getCardNo())) {
-                Elements inputs = td.getElementsByTag("input");
-                for (Element input : inputs) {
-                    String name = input.attr("name");
-                    if (name.startsWith("cardNo_")) {
-                        String cardId = name.substring(7);
-                        bookCardInfo.setCardId(cardId);
-                        return bookCardInfo;
-                    }
-                }
+        Elements cardNoTrs = cardTable.getElementsByTag("tr");
+        boolean flag = false;
+        for (Element cardNoTr : cardNoTrs) {
+            Element td = cardNoTr.getElementsByTag("td").get(1);
+            String cardNo = td.text().trim();
+            if (bookCardInfo.getCardNoList().contains(cardNo)) {
+                // cardNo_XXXXXX
+                String name = td.child(0).attr("name");
+                String cardId = name.substring(7);
+                bookCardInfo.addCardInfo(new CardInfo(cardId, cardNo));
+                bookCardInfo.getCardNoList().remove(cardNo);
+                flag = true;
             }
         }
-        return null;
+        return flag ? bookCardInfo : null;
     }
 
     /**
@@ -246,9 +254,11 @@ public class HttpTest {
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
         parameter.add("subscribeId", bookCardInfo.getSubscribeId());
         parameter.add("subscribeCalendarId", bookCardInfo.getSubscribeCalendarId());
-        parameter.add("cardNo_" + bookCardInfo.getCardId(), bookCardInfo.getCardNo());
-        parameter.add("cardType_" + bookCardInfo.getCardId(), "1");
-        parameter.add("cardId", bookCardInfo.getCardId() + "#" + bookCardInfo.getCardNo());
+        for (CardInfo cardInfo : bookCardInfo.getCardInfoList()) {
+            parameter.add("cardNo_" + cardInfo.getCardId(), cardInfo.getCardNo());
+            parameter.add("cardType_" + cardInfo.getCardId(), "1");
+            parameter.add("cardId", cardInfo.getCardId() + "#" + cardInfo.getCardNo());
+        }
 
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
 
