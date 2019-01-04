@@ -306,4 +306,100 @@ public class HttpTest {
         String responseBody = restTemplate.postForObject(loginURL, request, String.class);
         System.out.println(responseBody);
     }
+
+    /**
+     * 京津冀旅游年卡景区预定 ：取消
+     */
+    @Test
+    public void testCancelBookTicket() {
+        String JSESSIONID = "自己登陆后的jsessionid";
+        //要取消的景区
+        String cancelName = SubscribeIdEnum.天津中华曲苑相声会馆.name();
+
+        System.out.println(new Date());
+        int count = 0;
+        while (true) {
+            try {
+                String bookId = getMySubscribeId(JSESSIONID, cancelName);
+                if (bookId != null) {
+                    System.out.println("cancel book id：" + bookId);
+                    boolean cancelResult = cancelBookTicket(JSESSIONID, bookId);
+                    if (cancelResult) {
+                        System.out.println(count + "：取消成功，退出循环");
+                        System.out.println(new Date());
+                        break;
+                    }
+                }
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 获取已预订景区的id
+     *
+     * @param JSESSIONID 登陆后的JSESSIONID
+     * @param cancelName 待取消景区的名称
+     * @return
+     */
+    private String getMySubscribeId(String JSESSIONID, String cancelName) {
+        String mySubscribeListURL = "http://zglynk.com/ITS/itsApp/goMySubscribeList.action";
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
+        HttpEntity request = new HttpEntity(httpHeaders);
+
+        String responseString = restTemplate.postForObject(mySubscribeListURL, request, String.class);
+        Document document = Jsoup.parse(responseString);
+
+        Element ul = document.select("ul.jq-yu-list.p-top30").first();
+        Elements lis = ul.getElementsByTag("li");
+        for (Element li : lis) {
+            Element aNode = li.getElementsByTag("a").first();
+            String ticketTitle = aNode.select("p.font34").text();
+            if (ticketTitle.contains(cancelName)) {
+                String href = aNode.attr("href");
+                String bookId = href.substring("goViewUserSubscribe.action?id=".length());
+                return bookId;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 取消预订
+     *
+     * @param JSESSIONID 登陆后的JSESSIONID
+     * @param bookId
+     */
+    private boolean cancelBookTicket(String JSESSIONID, String bookId) {
+        String cancelURL = "http://zglynk.com/ITS/itsApp/cancelUserSubscribeInfo.action";
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
+
+        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
+        parameter.add("id", bookId);
+        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
+
+        int count = 0;
+        for (int i = 0; i < 3; i++) {
+            try {
+                String responseBody = restTemplate.postForObject(cancelURL, request, String.class);
+                JSONObject jsonObject = JSONObject.parseObject(responseBody);
+                if ("1".equals(jsonObject.getString("status"))) {
+                    System.out.println(responseBody);
+                    return true;
+                } else {
+                    System.out.println("cancel fail：" + ++count + "——" + responseBody);
+                }
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
 }
