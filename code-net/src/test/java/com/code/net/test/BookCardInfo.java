@@ -11,6 +11,9 @@ import java.util.List;
  * @date 2018-12-12
  */
 public class BookCardInfo {
+    /**
+     * 预约日期，格式必须是：yyyy-MM-dd
+     */
     private String bookDate;
     /**
      * 景区id
@@ -20,6 +23,10 @@ public class BookCardInfo {
      * 预定日期id
      */
     private String subscribeCalendarId;
+    /**
+     * 预约成功后是否开启邮件通知功能
+     */
+    private boolean emailNotice;
     /**
      * 是否定时抢票
      */
@@ -60,6 +67,14 @@ public class BookCardInfo {
 
     public void setSubscribeCalendarId(String subscribeCalendarId) {
         this.subscribeCalendarId = subscribeCalendarId;
+    }
+
+    public boolean isEmailNotice() {
+        return emailNotice;
+    }
+
+    public void setEmailNotice(boolean emailNotice) {
+        this.emailNotice = emailNotice;
     }
 
     public boolean isTiming() {

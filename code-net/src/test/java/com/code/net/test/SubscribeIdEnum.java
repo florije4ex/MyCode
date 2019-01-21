@@ -25,4 +25,19 @@ public enum SubscribeIdEnum {
     public String getSubscribeId() {
         return subscribeId;
     }
+
+    /**
+     * 通过景区id获取景区枚举对象
+     *
+     * @param subscribeId 景区id
+     * @return 景区对象
+     */
+    public static SubscribeIdEnum getSubscribeIdEnumById(String subscribeId) {
+        for (SubscribeIdEnum subscribeIdEnum : SubscribeIdEnum.values()) {
+            if (subscribeIdEnum.getSubscribeId().equals(subscribeId)) {
+                return subscribeIdEnum;
+            }
+        }
+        return null;
+    }
 }

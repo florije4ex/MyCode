@@ -1,6 +1,7 @@
 package com.code.net.test;
 
 import com.alibaba.fastjson.JSONObject;
+import com.cui.code.net.util.MailUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +14,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * http基础测试
@@ -117,11 +120,12 @@ public class HttpTest {
         bookCardInfo.addCardNo("预约卡号2");
         bookCardInfo.addCardNo("预约卡号3");
         // 奥林匹克塔：7  延庆打铁花：8   天津的相声：9  蓝调滑雪预约：14    八达岭野生动物园：15  梦幻影院：16   明珠山庄温泉浴场：17
-        bookCardInfo.setSubscribeId(SubscribeIdEnum.蓝调滑雪预约.getSubscribeId());
-        // 预约日期
-        bookCardInfo.setBookDate("2018-12-15");
+        bookCardInfo.setSubscribeId(SubscribeIdEnum.明珠山庄温泉浴场.getSubscribeId());
+        // 预约日期 格式必须是：yyyy-MM-dd
+        bookCardInfo.setBookDate("2019-01-21");
+        bookCardInfo.setEmailNotice(true);
         // 开启定时抢票的功能，设置开抢的定时时间
-        bookCardInfo.setTiming(true);
+        bookCardInfo.setTiming(false);
         LocalDateTime startTime = LocalDateTime.parse("2018-12-31 06:55", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         Instant instant = startTime.atZone(ZoneId.systemDefault()).toInstant();
         bookCardInfo.setTimingStartTime(Date.from(instant));
@@ -136,10 +140,19 @@ public class HttpTest {
             try {
                 BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
                 if (bookInfo != null) {
-                    boolean result = lynkBook(bookInfo, JSESSIONID);
-                    if (result) {
+                    Integer resultId = lynkBook(bookInfo, JSESSIONID);
+                    if (resultId != null) {
                         System.out.println(count + "：预约成功，退出循环");
-                        System.out.println(new Date());
+                        Date date = new Date();
+                        System.out.println(date);
+                        if (bookCardInfo.isEmailNotice()) {
+                            String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
+                            String subject = MessageFormat.format("景区预约成功——{0}:{1}", name, resultId);
+                            String content = MessageFormat.format("预约信息：预约卡号：{0}，预约景区：{1}，预约日期：{2}，预约成功id：{3}，预约成功时间：{4}",
+                                    bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
+                                    bookCardInfo.getBookDate(), resultId, date);
+                            MailUtil.sendMailByConfig(subject, content);
+                        }
                         break;
                     }
                 }
@@ -229,7 +242,7 @@ public class HttpTest {
     /**
      * 京津冀旅游年卡景区预约提交
      */
-    private boolean lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
+    private Integer lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
         Map<String, String> statusMap = new HashMap<>();
         statusMap.put("1", "预约成功");
         statusMap.put("2", "预约失败，请重试！");
@@ -269,7 +282,7 @@ public class HttpTest {
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 if ("1".equals(jsonObject.getString("status"))) {
                     System.out.println(responseBody);
-                    return true;
+                    return jsonObject.getInteger("id");
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
                     System.out.println(statusMap.getOrDefault(jsonObject.getString("status"), "预约失败，请重试！"));
@@ -279,7 +292,7 @@ public class HttpTest {
                 e.printStackTrace();
             }
         }
-        return false;
+        return null;
 
         // 成功：
         //"{\n" +
