@@ -36,6 +36,10 @@ public class BookCardInfo {
      */
     private Date timingStartTime;
     /**
+     * 预约截止时间
+     */
+    private Date endTime;
+    /**
      * 预订卡号
      */
     private List<String> cardNoList = new ArrayList<>();
@@ -91,6 +95,14 @@ public class BookCardInfo {
 
     public void setTimingStartTime(Date timingStartTime) {
         this.timingStartTime = timingStartTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
     }
 
     public List<String> getCardNoList() {

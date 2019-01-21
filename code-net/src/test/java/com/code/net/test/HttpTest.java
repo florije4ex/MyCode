@@ -7,6 +7,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
  * @date 2018-11-26
  */
 public class HttpTest {
+    private static final Logger logger = LoggerFactory.getLogger(HttpTest.class);
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -129,6 +132,12 @@ public class HttpTest {
         LocalDateTime startTime = LocalDateTime.parse("2018-12-31 06:55", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         Instant instant = startTime.atZone(ZoneId.systemDefault()).toInstant();
         bookCardInfo.setTimingStartTime(Date.from(instant));
+        // 添加预约截止时间，防止在此时间点之后约到票了但是来不及赶去景点
+        LocalDateTime endTime = LocalDateTime.parse("2019-01-21 15:35", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        Instant endInstant = endTime.atZone(ZoneId.systemDefault()).toInstant();
+        bookCardInfo.setEndTime(Date.from(endInstant));
+        // 校验数据：日期格式对不对？开启定时抢票功能后的开抢时间点是否在当前时间之后？预约截止时间是否在当前时间之后，在开抢定时时间之后？
+        // validation()
 
         System.out.println(new Date());
         int count = 0;
@@ -153,15 +162,22 @@ public class HttpTest {
                                     bookCardInfo.getBookDate(), resultId, date);
                             MailUtil.sendMailByConfig(subject, content);
                         }
-                        break;
+                        return;
                     }
                 }
+                if (System.currentTimeMillis() >= bookCardInfo.getEndTime().getTime()) {
+                    logger.info("当前时间已超过预约截止时间：{}，停止抢票。", bookCardInfo.getEndTime());
+                    MailUtil.sendMailByConfig("停止抢票", "当前时间已超过预约截止时间：" + bookCardInfo.getEndTime() + "，停止抢票。如有需要请重新设置后再次启动。");
+                    return;
+                }
+
                 if (bookCardInfo.isTiming() && System.currentTimeMillis() < bookCardInfo.getTimingStartTime().getTime()) {
                     Thread.sleep(1000 * 60);
                 } else {
                     Thread.sleep(1000);
                 }
             } catch (Exception e) {
+                logger.error("抢票异常", e);
                 e.printStackTrace();
                 try {
                     Thread.sleep(5000);
