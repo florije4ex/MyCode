@@ -149,7 +149,7 @@ public class HttpTest {
             try {
                 BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
                 if (bookInfo != null) {
-                    Integer resultId = lynkBook(bookInfo, JSESSIONID);
+                    String resultId = lynkBook(bookInfo, JSESSIONID);
                     if (resultId != null) {
                         System.out.println(count + "：预约成功，退出循环");
                         Date date = new Date();
@@ -157,7 +157,8 @@ public class HttpTest {
                         if (bookCardInfo.isEmailNotice()) {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
                             String subject = MessageFormat.format("景区预约成功——{0}:{1}", name, resultId);
-                            String content = MessageFormat.format("预约信息：预约卡号：{0}，预约景区：{1}，预约日期：{2}，预约成功id：{3}，预约成功时间：{4}",
+                            String content = MessageFormat.format("<h3>预约信息：</h3><ol><li>预约卡号：{0}</li><li>预约景区：{1}</li>" +
+                                            "<li>预约日期：{2}</li><li>预约成功id：{3}</li><li>预约成功时间：{4}</li></ol>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
                                     bookCardInfo.getBookDate(), resultId, date);
                             MailUtil.sendMailByConfig(subject, content);
@@ -220,6 +221,7 @@ public class HttpTest {
         // 解析日期id
         Element table = tables.get(0);
         Elements trs = table.getElementsByTag("tr");
+        boolean dateFlag = false;
         for (Element tr : trs) {
             Elements tds = tr.getElementsByTag("td");
             Element date = tds.get(0);
@@ -230,16 +232,21 @@ public class HttpTest {
                     Elements input = bookTd.getElementsByTag("input");
                     String subscribeCalendarId = input.attr("value");
                     bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
+                    dateFlag = true;
                     break;
                 } else {
                     return null;
                 }
             }
         }
+        if (!dateFlag) {
+            return null;
+        }
+
         //解析cardId
         Element cardTable = tables.get(1);
         Elements cardNoTrs = cardTable.getElementsByTag("tr");
-        boolean flag = false;
+        boolean cardFlag = false;
         for (Element cardNoTr : cardNoTrs) {
             Element td = cardNoTr.getElementsByTag("td").get(1);
             String cardNo = td.text().trim();
@@ -249,16 +256,16 @@ public class HttpTest {
                 String cardId = name.substring(7);
                 bookCardInfo.addCardInfo(new CardInfo(cardId, cardNo));
                 bookCardInfo.getCardNoList().remove(cardNo);
-                flag = true;
+                cardFlag = true;
             }
         }
-        return flag ? bookCardInfo : null;
+        return cardFlag ? bookCardInfo : null;
     }
 
     /**
      * 京津冀旅游年卡景区预约提交
      */
-    private Integer lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
+    private String lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
         Map<String, String> statusMap = new HashMap<>();
         statusMap.put("1", "预约成功");
         statusMap.put("2", "预约失败，请重试！");
@@ -298,7 +305,7 @@ public class HttpTest {
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 if ("1".equals(jsonObject.getString("status"))) {
                     System.out.println(responseBody);
-                    return jsonObject.getInteger("id");
+                    return jsonObject.getString("id");
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
                     System.out.println(statusMap.getOrDefault(jsonObject.getString("status"), "预约失败，请重试！"));
