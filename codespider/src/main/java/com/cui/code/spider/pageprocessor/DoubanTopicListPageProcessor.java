@@ -84,7 +84,7 @@ public class DoubanTopicListPageProcessor implements PageProcessor {
 
             doubanTopicDO.setGroupCode(groupCode);
             doubanTopicDO.setTopicId(Integer.valueOf(topicId));
-            doubanTopicDO.setTopicName(title);
+            doubanTopicDO.setTopicName(title.length() > 100 ? title.substring(0, 97) + "…" : title);
             doubanTopicDO.setAuthorId(authorId);
             doubanTopicDO.setAuthorName(authorName);
             doubanTopicDO.setLastReplyTime(Date.from(zonedDateTime.toInstant()));
