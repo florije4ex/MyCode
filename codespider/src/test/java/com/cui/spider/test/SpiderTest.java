@@ -1,11 +1,15 @@
 package com.cui.spider.test;
 
+import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
 import com.cui.code.spider.pageprocessor.DoubanGroupMembersPageProcessor;
 import com.cui.code.spider.pageprocessor.DoubanGroupPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanTopicDetailPageProcessor;
 import com.cui.code.spider.pageprocessor.DoubanTopicListPageProcessor;
 import com.cui.code.spider.pipeline.DoubanGroupMembersPipeline;
 import com.cui.code.spider.pipeline.DoubanGroupPipeline;
+import com.cui.code.spider.pipeline.DoubanTopicDetailPipeline;
 import com.cui.code.spider.pipeline.DoubanTopicPipeline;
+import com.cui.code.spider.service.DoubanTopicService;
 import org.junit.Test;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
@@ -99,12 +103,58 @@ public class SpiderTest {
         proxies.add(new Proxy("219.234.5.128", 3128));
         httpClientDownloader.setProxyProvider(new SimpleProxyProvider(proxies));
 
-        String groupCode = "635609";
+        String groupCode = "trip";
+        int start = 1647752321;
         Spider spider = Spider.create(new DoubanTopicListPageProcessor());
         spider.setDownloader(httpClientDownloader);
-        spider.addUrl("https://www.douban.com/group/" + groupCode + "/discussion?start=0")
+        spider.addUrl("https://www.douban.com/group/" + groupCode + "/discussion?start=" + start)
                 .addPipeline(new DoubanTopicPipeline())
                 .thread(3).run();
+    }
+
+    /**
+     * 爬一下豆瓣的话题详情页
+     */
+    @Test
+    public void testDoubanTopicDetail() {
+        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
+        List<Proxy> proxies = new ArrayList<>();
+        proxies.add(new Proxy("119.101.113.121", 9999));
+        //proxies.add(new Proxy("119.101.114.46", 9999));
+        //proxies.add(new Proxy("119.101.117.37", 9999));
+        //proxies.add(new Proxy("119.101.116.6", 9999));
+        //proxies.add(new Proxy("119.101.119.82", 9999));
+        //proxies.add(new Proxy("119.101.115.142", 9999));
+        httpClientDownloader.setProxyProvider(new SimpleProxyProvider(proxies));
+
+        String groupCode = "trip";
+        int pageSize = 10;
+        int lastId = 2288;
+        DoubanTopicService doubanTopicService = new DoubanTopicService();
+
+        while (true) {
+            List<DoubanTopicDO> topicDOList = doubanTopicService.pageQuery(groupCode, lastId, pageSize);
+            String[] urls = new String[pageSize];
+            String urlPrefix = "https://www.douban.com/group/topic/";
+            for (int i = 0; i < topicDOList.size(); i++) {
+                urls[i] = urlPrefix + topicDOList.get(i).getTopicId();
+            }
+
+            try {
+                Spider spider = Spider.create(new DoubanTopicDetailPageProcessor());
+                spider.setDownloader(httpClientDownloader);
+                spider.addUrl(urls)
+                        .addPipeline(new DoubanTopicDetailPipeline())
+                        .thread(2).run();
+                if (topicDOList.size() < pageSize) {
+                    break;
+                }
+                lastId = topicDOList.get(topicDOList.size() - 1).getId();
+            } catch (Exception e) {
+                System.out.println(lastId);
+                e.printStackTrace();
+            }
+        }
     }
 
     /**

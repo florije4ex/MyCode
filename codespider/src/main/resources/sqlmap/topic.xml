@@ -4,6 +4,20 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cui.code.spider.dal.dao.DoubanTopicDAO">
 
+    <resultMap id="DoubanTopicDO" type="com.cui.code.spider.dal.dataobject.DoubanTopicDO">
+        <id column="id" property="id"/>
+        <result column="group_code" property="groupCode"/>
+        <result column="topic_id" property="topicId"/>
+        <result column="topic_name" property="topicName"/>
+        <result column="author_id" property="authorId"/>
+        <result column="author_name" property="authorName"/>
+        <result column="reply_count" property="replyCount"/>
+        <result column="last_reply_time" property="lastReplyTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="notes" property="notes"/>
+    </resultMap>
+
     <!-- 批量保存topic -->
     <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO `topic`(group_code,topic_id,topic_name,author_id,author_name,reply_count,last_reply_time)
@@ -13,5 +27,14 @@
             #{topic.replyCount},#{topic.lastReplyTime})
         </foreach>
     </insert>
+
+    <!--page query -->
+    <select id="pageByGroupCode" resultMap="DoubanTopicDO">
+        select id,group_code,topic_id,topic_name,author_id,author_name,reply_count,last_reply_time
+        from topic
+        where group_code = #{groupCode} and id > #{id}
+        order by id asc
+        limit #{pageSize}
+    </select>
 
 </mapper>
