@@ -53,6 +53,7 @@
         <caffeine.version>2.6.2</caffeine.version>
         <lombok.version>1.18.4</lombok.version>
         <mail.version>1.6.2</mail.version>
+        <snakeyaml.version>1.23</snakeyaml.version>
     </properties>
 
     <dependencyManagement>
@@ -265,6 +266,13 @@
                 <groupId>com.sun.mail</groupId>
                 <artifactId>javax.mail</artifactId>
                 <version>${mail.version}</version>
+            </dependency>
+
+            <!--yaml解析-->
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
             </dependency>
 
         </dependencies>
