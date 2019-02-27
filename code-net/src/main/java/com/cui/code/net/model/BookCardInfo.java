@@ -1,4 +1,4 @@
-package com.code.net.test;
+package com.cui.code.net.model;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,6 +12,10 @@ import java.util.List;
  */
 public class BookCardInfo {
     /**
+     * 登陆后的JSESSIONID
+     */
+    private String JSESSIONID;
+    /**
      * 预约日期，格式必须是：yyyy-MM-dd
      */
     private String bookDate;
@@ -19,6 +23,10 @@ public class BookCardInfo {
      * 景区id
      */
     private String subscribeId;
+    /**
+     * 景区名称，必须取SubscribeIdEnum中对应的名称
+     */
+    private String subscribeName;
     /**
      * 预定日期id
      */
@@ -36,9 +44,17 @@ public class BookCardInfo {
      */
     private Date timingStartTime;
     /**
+     * 方便yaml注入的字段
+     */
+    private String timingStartTimeConfig;
+    /**
      * 预约截止时间
      */
     private Date endTime;
+    /**
+     * 预约截止时间,注入
+     */
+    private String endTimeConfig;
     /**
      * 预订卡号
      */
@@ -48,6 +64,14 @@ public class BookCardInfo {
      */
     private List<CardInfo> cardInfoList = new ArrayList<>();
 
+
+    public String getJSESSIONID() {
+        return JSESSIONID;
+    }
+
+    public void setJSESSIONID(String JSESSIONID) {
+        this.JSESSIONID = JSESSIONID;
+    }
 
     public String getBookDate() {
         return bookDate;
@@ -63,6 +87,14 @@ public class BookCardInfo {
 
     public void setSubscribeId(String subscribeId) {
         this.subscribeId = subscribeId;
+    }
+
+    public String getSubscribeName() {
+        return subscribeName;
+    }
+
+    public void setSubscribeName(String subscribeName) {
+        this.subscribeName = subscribeName;
     }
 
     public String getSubscribeCalendarId() {
@@ -97,12 +129,28 @@ public class BookCardInfo {
         this.timingStartTime = timingStartTime;
     }
 
+    public String getTimingStartTimeConfig() {
+        return timingStartTimeConfig;
+    }
+
+    public void setTimingStartTimeConfig(String timingStartTimeConfig) {
+        this.timingStartTimeConfig = timingStartTimeConfig;
+    }
+
     public Date getEndTime() {
         return endTime;
     }
 
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
+    }
+
+    public String getEndTimeConfig() {
+        return endTimeConfig;
+    }
+
+    public void setEndTimeConfig(String endTimeConfig) {
+        this.endTimeConfig = endTimeConfig;
     }
 
     public List<String> getCardNoList() {
@@ -128,33 +176,24 @@ public class BookCardInfo {
     public void addCardInfo(CardInfo cardInfo) {
         this.cardInfoList.add(cardInfo);
     }
-}
 
-/**
- * 预订卡信息
- */
-class CardInfo {
-    private String cardId;
-    private String cardNo;
-
-    public CardInfo(String cardId, String cardNo) {
-        this.cardId = cardId;
-        this.cardNo = cardNo;
-    }
-
-    public String getCardId() {
-        return cardId;
-    }
-
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
-    }
-
-    public String getCardNo() {
-        return cardNo;
-    }
-
-    public void setCardNo(String cardNo) {
-        this.cardNo = cardNo;
+    @Override
+    public String toString() {
+        return "BookCardInfo{" +
+                "JSESSIONID='" + JSESSIONID + '\'' +
+                ", bookDate='" + bookDate + '\'' +
+                ", subscribeId='" + subscribeId + '\'' +
+                ", subscribeName='" + subscribeName + '\'' +
+                ", subscribeCalendarId='" + subscribeCalendarId + '\'' +
+                ", emailNotice=" + emailNotice +
+                ", timing=" + timing +
+                ", timingStartTime=" + timingStartTime +
+                ", timingStartTimeConfig='" + timingStartTimeConfig + '\'' +
+                ", endTime=" + endTime +
+                ", endTimeConfig='" + endTimeConfig + '\'' +
+                ", cardNoList=" + cardNoList +
+                ", cardInfoList=" + cardInfoList +
+                '}';
     }
 }
+

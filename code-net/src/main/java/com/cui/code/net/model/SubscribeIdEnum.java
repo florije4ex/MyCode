@@ -1,4 +1,4 @@
-package com.code.net.test;
+package com.cui.code.net.model;
 
 /**
  * 可预订的景区

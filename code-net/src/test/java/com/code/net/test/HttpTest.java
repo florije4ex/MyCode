@@ -1,7 +1,11 @@
 package com.code.net.test;
 
 import com.alibaba.fastjson.JSONObject;
+import com.cui.code.net.model.BookCardInfo;
+import com.cui.code.net.model.CardInfo;
+import com.cui.code.net.model.SubscribeIdEnum;
 import com.cui.code.net.util.MailUtil;
+import com.cui.code.net.util.YamlUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -17,10 +21,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.MessageFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -116,26 +116,7 @@ public class HttpTest {
      */
     @Test
     public void testBookTicket() {
-        // 预登陆后的JSESSIONID
-        String JSESSIONID = "自己登陆后的jsessionid";
-        BookCardInfo bookCardInfo = new BookCardInfo();
-        bookCardInfo.addCardNo("预约卡号1");
-        bookCardInfo.addCardNo("预约卡号2");
-        bookCardInfo.addCardNo("预约卡号3");
-        // 奥林匹克塔：7  延庆打铁花：8   天津的相声：9  蓝调滑雪预约：14    八达岭野生动物园：15  梦幻影院：16   明珠山庄温泉浴场：17
-        bookCardInfo.setSubscribeId(SubscribeIdEnum.明珠山庄温泉浴场.getSubscribeId());
-        // 预约日期 格式必须是：yyyy-MM-dd
-        bookCardInfo.setBookDate("2019-01-21");
-        bookCardInfo.setEmailNotice(true);
-        // 开启定时抢票的功能，设置开抢的定时时间
-        bookCardInfo.setTiming(false);
-        LocalDateTime startTime = LocalDateTime.parse("2018-12-31 06:55", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        Instant instant = startTime.atZone(ZoneId.systemDefault()).toInstant();
-        bookCardInfo.setTimingStartTime(Date.from(instant));
-        // 添加预约截止时间，防止在此时间点之后约到票了但是来不及赶去景点
-        LocalDateTime endTime = LocalDateTime.parse("2019-01-21 15:35", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        Instant endInstant = endTime.atZone(ZoneId.systemDefault()).toInstant();
-        bookCardInfo.setEndTime(Date.from(endInstant));
+        BookCardInfo bookCardInfo = YamlUtil.getBookCardInfo();
         // 校验数据：日期格式对不对？开启定时抢票功能后的开抢时间点是否在当前时间之后？预约截止时间是否在当前时间之后，在开抢定时时间之后？
         // validation()
 
@@ -147,9 +128,9 @@ public class HttpTest {
                 System.out.println(new Date());
             }
             try {
-                BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo, JSESSIONID);
+                BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo);
                 if (bookInfo != null) {
-                    String resultId = lynkBook(bookInfo, JSESSIONID);
+                    String resultId = lynkBook(bookInfo);
                     if (resultId != null) {
                         System.out.println(count + "：预约成功，退出循环");
                         Date date = new Date();
@@ -158,9 +139,10 @@ public class HttpTest {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
                             String subject = MessageFormat.format("景区预约成功——{0}:{1}", name, resultId);
                             String content = MessageFormat.format("<h3>预约信息：</h3><ol><li>预约卡号：{0}</li><li>预约景区：{1}</li>" +
-                                            "<li>预约日期：{2}</li><li>预约成功id：{3}</li><li>预约成功时间：{4}</li></ol>",
+                                            "<li>预约日期：{2}</li><li>预约成功id：{3}</li><li>预约成功时间：{4}</li></ol>" +
+                                            "<h4>其他信息：</h4><p>预约详情：{5}</p>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
-                                    bookCardInfo.getBookDate(), resultId, date);
+                                    bookCardInfo.getBookDate(), resultId, date, JSON.toJSONString(bookCardInfo));
                             MailUtil.sendMailByConfig(subject, content);
                         }
                         return;
@@ -175,11 +157,11 @@ public class HttpTest {
                 if (bookCardInfo.isTiming() && System.currentTimeMillis() < bookCardInfo.getTimingStartTime().getTime()) {
                     Thread.sleep(1000 * 60);
                 } else {
-                    Thread.sleep(1000);
+                    int sleepTime = (int) (1000 + Math.random() * 500);
+                    Thread.sleep(sleepTime);
                 }
             } catch (Exception e) {
                 logger.error("抢票异常", e);
-                e.printStackTrace();
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e1) {
@@ -193,20 +175,19 @@ public class HttpTest {
      * 获取可预订日期的id
      *
      * @param bookCardInfo 预订卡信息
-     * @param JSESSIONID   登陆后的JSESSIONID
      * @return 日期的id
      */
-    private BookCardInfo getSubscribeCalendarId(BookCardInfo bookCardInfo, String JSESSIONID) {
+    private BookCardInfo getSubscribeCalendarId(BookCardInfo bookCardInfo) {
         String getSubscribeURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId();
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + bookCardInfo.getJSESSIONID());
         HttpEntity request = new HttpEntity(httpHeaders);
 
         String responseString = restTemplate.postForObject(getSubscribeURL, request, String.class);
         // 未登录
         if (responseString.contains("window.open ('/ITS/itsApp/login.jsp','_top')")) {
-            lynkLogin(JSESSIONID);
+            lynkLogin(bookCardInfo.getJSESSIONID());
             return null;
         } else if (responseString.contains("<html>\n" +
                 "<script>\n" +
@@ -248,13 +229,14 @@ public class HttpTest {
         Elements cardNoTrs = cardTable.getElementsByTag("tr");
         boolean cardFlag = false;
         for (Element cardNoTr : cardNoTrs) {
+            String cardName = cardNoTr.getElementsByTag("td").get(0).getElementsByTag("span").get(0).text().trim();
             Element td = cardNoTr.getElementsByTag("td").get(1);
             String cardNo = td.text().trim();
             if (bookCardInfo.getCardNoList().contains(cardNo)) {
                 // cardNo_XXXXXX
                 String name = td.child(0).attr("name");
                 String cardId = name.substring(7);
-                bookCardInfo.addCardInfo(new CardInfo(cardId, cardNo));
+                bookCardInfo.addCardInfo(new CardInfo(cardName, cardId, cardNo));
                 bookCardInfo.getCardNoList().remove(cardNo);
                 cardFlag = true;
             }
@@ -265,7 +247,7 @@ public class HttpTest {
     /**
      * 京津冀旅游年卡景区预约提交
      */
-    private String lynkBook(BookCardInfo bookCardInfo, String JSESSIONID) {
+    private String lynkBook(BookCardInfo bookCardInfo) {
         Map<String, String> statusMap = new HashMap<>();
         statusMap.put("1", "预约成功");
         statusMap.put("2", "预约失败，请重试！");
@@ -285,7 +267,7 @@ public class HttpTest {
         httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
         httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId());
         httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.8");
-        httpHeaders.add("Cookie", "JSESSIONID=" + JSESSIONID);
+        httpHeaders.add("Cookie", "JSESSIONID=" + bookCardInfo.getJSESSIONID());
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
         parameter.add("subscribeId", bookCardInfo.getSubscribeId());
