@@ -14,17 +14,6 @@ import java.util.List;
  */
 public class AddTwoNumTest {
 
-
-    //Definition for singly-linked list.
-    public class ListNode {
-        int val;
-        ListNode next;
-
-        ListNode(int x) {
-            val = x;
-        }
-    }
-
     public ListNode addTwoNumbers1(ListNode l1, ListNode l2) {
         long num1 = 0;
         long num2 = 0;
