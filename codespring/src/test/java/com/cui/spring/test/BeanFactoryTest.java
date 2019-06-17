@@ -1,5 +1,7 @@
 package com.cui.spring.test;
 
+import com.cui.spring.test.config.BeanConfig;
+import com.cui.spring.test.config.DataSource;
 import org.junit.Test;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
@@ -10,13 +12,14 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Date;
 
 /**
- * BeanFactory测试
- * BeanFactory的创建方式：3种
+ * BeanFactory 测试
+ * BeanFactory的创建方式：4种，不应该说BeanFactory的创建，而是容器的创建方式。只是BeanFactory 是容器的一种体现。
  * <p>
  * Created by cuishixiang on 2017-10-31.
  */
@@ -80,4 +83,40 @@ public class BeanFactoryTest {
         String news = newsProvider.getAndPersistNews();
         System.out.println(news);
     }
+
+    // 第四种，完全使用注解，彻底抛弃了xml配置文件，采用了完全使用Java注解的方式。因为我们是Java程序员，应该写Java代码，所以就……这是别人的解释
+    @Test
+    public void testJavaAnnotationConfig() {
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeanConfig.class);
+
+        System.out.println("beanDefinitionNames：");
+        String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            System.out.println(beanDefinitionName);
+        }
+
+        String osName = applicationContext.getEnvironment().getProperty("os.name");
+        System.out.println("os：" + osName);
+
+        FXNewsProvider djNewsProvider = (FXNewsProvider) applicationContext.getBean("fxNewsProvider");
+        String news = djNewsProvider.getAndPersistNews();
+        System.out.println(news);
+
+        PersonFactoryBean bean = applicationContext.getBean(PersonFactoryBean.class);
+        System.out.println(bean);
+
+
+        Object personFactoryBean = applicationContext.getBean("personFactoryBean");
+        System.out.println(personFactoryBean);
+
+        Object factoryBean = applicationContext.getBean("&personFactoryBean");
+        System.out.println(factoryBean);
+
+        Object dataSource = applicationContext.getBean(DataSource.class);
+        System.out.println(dataSource);
+
+
+        applicationContext.close();
+    }
+
 }
