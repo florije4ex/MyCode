@@ -6,6 +6,7 @@ import com.code.net.test.dto.DutyCalendar;
 import com.code.net.test.dto.DutyDTO;
 import com.code.net.test.dto.DutyDoctorInfo;
 import com.code.net.test.dto.HospitalCalendarDTO;
+import com.cui.code.net.exception.HospitalException;
 import com.cui.code.net.model.hospital.DutyTime;
 import com.cui.code.net.model.hospital.HospitalBookInfo;
 import com.cui.code.net.util.YamlUtil;
@@ -50,7 +51,9 @@ public class Hospital114Registration {
 
     // 登陆后的cookie信息
     private String cookies = "";
+    private static final int SUCCESS_CODE = 1;
     private static final int NO_LOGIN = 2009;
+    private static final int SMS_VERIFY_ERROR = 7001;
 
 
     public static void main(String[] args) {
@@ -104,7 +107,6 @@ public class Hospital114Registration {
 
 
                     String doctorId = null;
-                    int dutySourceId = 0;
                     Scanner scanner = new Scanner(System.in);
 
                     // 有dutySourceId 就直接查
@@ -113,7 +115,8 @@ public class Hospital114Registration {
                         for (List<DutyDoctorInfo> dutyDoctorInfos : data.values()) {
                             Optional<DutyDoctorInfo> optionalDutyDoctorInfo = dutyDoctorInfos.stream()
                                     .filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0
-                                            && dutyDoctorInfo.getDutySourceId() == finalDutySourceId).findFirst();
+                                            && dutyDoctorInfo.getDutySourceId() == finalDutySourceId)
+                                    .findFirst();
                             if (optionalDutyDoctorInfo.isPresent()) {
                                 doctorId = optionalDutyDoctorInfo.get().getDoctorId();
                                 break;
@@ -126,21 +129,27 @@ public class Hospital114Registration {
                             DutyTime dutyTime = DutyTime.getDutyTimeByTime(hospitalBookInfo.getDutyTime());
                             if (dutyTime != null) {
                                 List<DutyDoctorInfo> dutyDoctorInfos = data.get(dutyTime.getCode());
-                                Optional<DutyDoctorInfo> firstOptional = dutyDoctorInfos.stream().filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0 &&
-                                        dutyDoctorInfo.getDoctorName().trim().equals(hospitalBookInfo.getDoctorName()))
+                                Optional<DutyDoctorInfo> firstOptional = dutyDoctorInfos.stream()
+                                        .filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0 &&
+                                                dutyDoctorInfo.getDoctorName().trim().equals(hospitalBookInfo.getDoctorName()))
                                         .findFirst();
                                 if (firstOptional.isPresent()) {
-                                    doctorId = firstOptional.get().getDoctorId();
+                                    DutyDoctorInfo dutyDoctorInfo = firstOptional.get();
+                                    doctorId = dutyDoctorInfo.getDoctorId();
+                                    hospitalBookInfo.setDutySourceId(String.valueOf(dutyDoctorInfo.getDutySourceId()));
                                 }
                             }
                         } else {
                             // 否则全部筛查并选第一个
                             for (List<DutyDoctorInfo> dutyDoctorInfos : data.values()) {
-                                Optional<DutyDoctorInfo> firstOptional = dutyDoctorInfos.stream().filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0 &&
-                                        dutyDoctorInfo.getDoctorName().trim().equals(hospitalBookInfo.getDoctorName()))
+                                Optional<DutyDoctorInfo> firstOptional = dutyDoctorInfos.stream()
+                                        .filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0 &&
+                                                dutyDoctorInfo.getDoctorName().trim().equals(hospitalBookInfo.getDoctorName()))
                                         .findFirst();
                                 if (firstOptional.isPresent()) {
-                                    doctorId = firstOptional.get().getDoctorId();
+                                    DutyDoctorInfo dutyDoctorInfo = firstOptional.get();
+                                    doctorId = dutyDoctorInfo.getDoctorId();
+                                    hospitalBookInfo.setDutySourceId(String.valueOf(dutyDoctorInfo.getDutySourceId()));
                                     break;
                                 }
                             }
@@ -148,16 +157,18 @@ public class Hospital114Registration {
                     } else {
                         // 如果都没有选择则直接输入吧
                         System.out.println("选择医生，输入dutySourceId：");
-                        dutySourceId = scanner.nextInt();
+                        int dutySourceId = scanner.nextInt();
                         scanner.nextLine();
 
                         for (List<DutyDoctorInfo> dutyDoctorInfos : data.values()) {
-                            int finalDutySourceId = dutySourceId;
                             Optional<DutyDoctorInfo> optionalDutyDoctorInfo = dutyDoctorInfos.stream()
                                     .filter(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() > 0
-                                            && dutyDoctorInfo.getDutySourceId() == finalDutySourceId).findFirst();
+                                            && dutyDoctorInfo.getDutySourceId() == dutySourceId)
+                                    .findFirst();
                             if (optionalDutyDoctorInfo.isPresent()) {
-                                doctorId = optionalDutyDoctorInfo.get().getDoctorId();
+                                DutyDoctorInfo dutyDoctorInfo = optionalDutyDoctorInfo.get();
+                                doctorId = dutyDoctorInfo.getDoctorId();
+                                hospitalBookInfo.setDutySourceId(String.valueOf(dutyDoctorInfo.getDutySourceId()));
                                 break;
                             }
                         }
@@ -168,6 +179,7 @@ public class Hospital114Registration {
                         Thread.sleep(1000);
                         continue;
                     }
+                    String personalId = getPersonalId(hospitalBookInfo, doctorId);
 
                     // 获取短信验证码
                     sendBookSmsCode();
@@ -175,17 +187,19 @@ public class Hospital114Registration {
                     System.out.println("输入手机上收到的【114预约挂号】的短信验证码：");
                     String smsVerifyCode = scanner.nextLine();
 
-                    String personalId = getPersonalId(hospitalBookInfo, doctorId, String.valueOf(dutySourceId));
 
-                    String result = bookConfirm(hospitalBookInfo, doctorId, String.valueOf(dutySourceId), personalId, smsVerifyCode);
-                    System.out.println(result);
-
-                    JSONObject jsonObject = JSON.parseObject(result);
-                    if (jsonObject.get("code").equals(1)) {
+                    boolean result = bookConfirm(hospitalBookInfo, doctorId, personalId, smsVerifyCode);
+                    if (result) {
+                        System.out.println("抢票成功……发个通知吧");
                         // 发通知邮件、发短信
                     }
+
                     return;
                 }
+            } catch (HospitalException e) {
+                logger.error("出现异常，请关注异常信息：", e);
+                // 邮件或短信通知
+                return;
             } catch (Exception e) {
                 logger.error("抢票异常", e);
                 try {
@@ -203,7 +217,7 @@ public class Hospital114Registration {
      * @param hospitalBookInfo 预约信息
      * @return 是否有足够的号源
      */
-    private boolean hasNumber(HospitalBookInfo hospitalBookInfo) {
+    private boolean hasNumber(HospitalBookInfo hospitalBookInfo) throws HospitalException {
         String getCalendarIdURL = "http://www.114yygh.com/dpt/week/calendar.htm";
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -219,7 +233,7 @@ public class Hospital114Registration {
         httpHeaders.add("Connection", "keep-alive");
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("hospitalId", hospitalBookInfo.getHospitalId());
+        parameter.add("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
         parameter.add("departmentId", hospitalBookInfo.getDepartmentId());
         parameter.add("departmentName", "");
         parameter.add("isAjax", "true");
@@ -235,7 +249,8 @@ public class Hospital114Registration {
 
         Date firstDutyDate = hospitalCalendarDTO.getDutyCalendars().get(0).getDutyDate();
         if (hospitalBookInfo.getBookDate().before(firstDutyDate)) {
-            return false;
+            throw new HospitalException("最早可挂号日期：" + dateFormat.format(firstDutyDate) + "，你的预约日期："
+                    + dateFormat.format(hospitalBookInfo.getBookDate()) + "，已经结束挂号。往后调几天吧。");
         }
 
         LocalDateTime bookDateTime = LocalDateTime.ofInstant(hospitalBookInfo.getBookDate().toInstant(), ZoneId.systemDefault());
@@ -248,6 +263,7 @@ public class Hospital114Registration {
             hospitalCalendarDTO = JSON.parseObject(responseBody, HospitalCalendarDTO.class);
         }
 
+        // 这里得考虑一下预约日期比最大可预约日期还大的情况，应该设置定时，避免程序空跑
         if (hospitalCalendarDTO.isHasNumber()) {
             for (DutyCalendar dutyCalendar : hospitalCalendarDTO.getDutyCalendars()) {
                 if (dutyCalendar.getDutyDate().equals(hospitalBookInfo.getBookDate())) {
@@ -280,7 +296,7 @@ public class Hospital114Registration {
         httpHeaders.add("Cookie", cookies);
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("hospitalId", hospitalBookInfo.getHospitalId());
+        parameter.add("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
         parameter.add("departmentId", hospitalBookInfo.getDepartmentId());
         // 预约日期
         parameter.add("dutyDate", dateFormat.format(hospitalBookInfo.getBookDate()));
@@ -306,13 +322,13 @@ public class Hospital114Registration {
         // }
         // ……
 
-        if (jsonObject.getBoolean("hasError")) {
+        if (jsonObject.containsKey("hasError") && jsonObject.getBoolean("hasError")) {
             System.out.println(responseBody);
-            int code = (int) jsonObject.get("code");
+            int code = jsonObject.getIntValue("code");
             // 未登录
             if (code == NO_LOGIN) {
                 cookies = platformLogin(hospitalBookInfo);
-                System.out.println(cookies);
+                logger.info("cookie:{}", cookies);
             } else {
                 // 其他未知的错误返回信息？怎么办
                 // 不知道干什么的话，那就继续吧
@@ -416,13 +432,16 @@ public class Hospital114Registration {
     }
 
     // 获取就诊人id
-    private String getPersonalId(HospitalBookInfo hospitalBookInfo, String doctorId, String dutySourceId) throws IOException {
+    private String getPersonalId(HospitalBookInfo hospitalBookInfo, String doctorId) throws IOException, HospitalException {
         String confirmURL = "http://www.114yygh.com/order/confirm/{0}-{1}-{2}-{3}.htm";
-        confirmURL = MessageFormat.format(confirmURL, hospitalBookInfo.getHospitalId(), hospitalBookInfo.getDepartmentId(), doctorId, dutySourceId);
+        confirmURL = MessageFormat.format(confirmURL, hospitalBookInfo.getHospitalId(),
+                hospitalBookInfo.getDepartmentId(), doctorId, hospitalBookInfo.getDutySourceId());
 
         Document doc = Jsoup.connect(confirmURL)
                 .header("Cookie", cookies)
                 .get();
+        //*[@id="Reservation_info"]/div[2]/dl/div[1]/div[2]/span[1]  xpath
+        // #Reservation_info > div.Rese_db > dl > div.personnel[name]  css
         Elements persons = doc.select("#Reservation_info > div.Rese_db > dl > div.personnel[name]");
         for (Element person : persons) {
             String personName = person.select("div.infoRight > span.name").get(0).text();
@@ -430,12 +449,11 @@ public class Hospital114Registration {
                 return person.attr("name");
             }
         }
-        return null;
+        throw new HospitalException("未找到对应的就诊人：" + hospitalBookInfo.getName() + "，请先添加后再处理");
     }
 
     // 确认预约
-    private String bookConfirm(HospitalBookInfo hospitalBookInfo, String doctorId, String dutySourceId,
-                               String personalId, String smsVerifyCode) {
+    private boolean bookConfirm(HospitalBookInfo hospitalBookInfo, String doctorId, String personalId, String smsVerifyCode) {
         String confirmURL = "http://www.114yygh.com/order/confirmV1.htm";
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -445,26 +463,41 @@ public class Hospital114Registration {
         httpHeaders.add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36");
         httpHeaders.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
         httpHeaders.add("Accept", "application/json, text/javascript, */*;q=0.01");
-        httpHeaders.add("Referer", "http://www.114yygh.com/order/confirm/" + hospitalBookInfo.getHospitalId() + "-" + hospitalBookInfo.getDepartmentId() +
-                "-" + doctorId + "-" + dutySourceId + ".htm");
+        httpHeaders.add("Referer", "http://www.114yygh.com/order/confirm/" +
+                hospitalBookInfo.getHospitalId() + "-" + hospitalBookInfo.getDepartmentId() + "-" +
+                doctorId + "-" + hospitalBookInfo.getDutySourceId() + ".htm");
         httpHeaders.add("X-Requested-With", "XMLHttpRequest");
         httpHeaders.add("Connection", "keep-alive");
         httpHeaders.add("Cookie", cookies);
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("hospitalId", hospitalBookInfo.getHospitalId());
+        parameter.add("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
         parameter.add("departmentId", hospitalBookInfo.getDepartmentId());
         parameter.add("doctorId", doctorId);
-        parameter.add("dutySourceId", dutySourceId);
+        parameter.add("dutySourceId", hospitalBookInfo.getDutySourceId());
         parameter.add("patientId", personalId);
         parameter.add("smsVerifyCode", smsVerifyCode);
         parameter.add("kinshipName", hospitalBookInfo.getName());
         parameter.add("isAjax", "true");
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
 
-        return restTemplate.postForObject(confirmURL, request, String.class);
+        String result = restTemplate.postForObject(confirmURL, request, String.class);
+        System.out.println(result);
+        JSONObject jsonObject = JSON.parseObject(result);
+        if (jsonObject.containsKey("hasError") && jsonObject.getBoolean("hasError")) {
+            int code = jsonObject.getIntValue("code");
+            if (code == SMS_VERIFY_ERROR) {
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("重新输入验证码：");
+                smsVerifyCode = scanner.nextLine();
+                bookConfirm(hospitalBookInfo, doctorId, personalId, smsVerifyCode);
+            } else {
+                // 其他问题不知道干嘛……
+            }
+            return false;
+        }
+        return true;
     }
-
 
     // 取消预约
     // curl 'http://www.114yygh.com/order/cel.htm' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Referer: http://www.114yygh.com/u/index.htm?basePath=%2F&tokenUrl=http%3A%2F%2Fupload.idc3%2Fxora%2Ftoken%2F2.htm&uploadUrl=http%3A%2F%2Fupload.idc3%2Fxora%2Fupload%2Fs.htm&imageTypes=image%2Fpng%2C+image%2Fgif%2C+.jpeg%2C+.jpg&v=1558151970376&specializedHospitalUrl=http%3A%2F%2Fzmyygh.114menhu.com%2F&hps=http%3A%2F%2Fimg.114yygh.com%2F&hs=http%3A%2F%2Fimg.114yygh.com%2Fws%2F1.0%2Fhs%2F&mobileNo=13006317071&smsType=13&yzm=&redirectUrl=http%3A%2F%2Fwww.114yygh.com%2Fu%2Findex.htm&userSize=1' -H 'Origin: http://www.114yygh.com' -H 'X-Requested-With: XMLHttpRequest' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' --data 'orderId=105908387&hospitalType=1&isAjax=true' --compressed
