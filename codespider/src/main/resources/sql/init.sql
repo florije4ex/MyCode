@@ -41,3 +41,24 @@ CREATE TABLE `group_member` (
   `notes` varchar(100) NOT NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COMMENT='小组成员：https://www.douban.com/people/XXXXXX';
+
+
+
+
+———————————————————————————————分隔线———————————————————————————————————————
+hospital库:
+
+CREATE TABLE `hospital` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) NOT NULL DEFAULT '' COMMENT '医院名称',
+  `level` varchar(32) NOT NULL DEFAULT '' COMMENT '医院等级',
+  `hospital_id` int(11) NOT NULL DEFAULT '0' COMMENT '医院在平台上的id',
+  `start_time` time NOT NULL DEFAULT '08:00:00' COMMENT '开始预约时间',
+  `phone` varchar(64) NOT NULL DEFAULT '' COMMENT '电话',
+  `address` varchar(128) NOT NULL DEFAULT '' COMMENT '地址',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `notes` varchar(100) NOT NULL DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='114平台上的医院';
+

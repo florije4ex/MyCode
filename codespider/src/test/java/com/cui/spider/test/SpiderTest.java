@@ -1,14 +1,8 @@
 package com.cui.spider.test;
 
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
-import com.cui.code.spider.pageprocessor.DoubanGroupMembersPageProcessor;
-import com.cui.code.spider.pageprocessor.DoubanGroupPageProcessor;
-import com.cui.code.spider.pageprocessor.DoubanTopicDetailPageProcessor;
-import com.cui.code.spider.pageprocessor.DoubanTopicListPageProcessor;
-import com.cui.code.spider.pipeline.DoubanGroupMembersPipeline;
-import com.cui.code.spider.pipeline.DoubanGroupPipeline;
-import com.cui.code.spider.pipeline.DoubanTopicDetailPipeline;
-import com.cui.code.spider.pipeline.DoubanTopicPipeline;
+import com.cui.code.spider.pageprocessor.*;
+import com.cui.code.spider.pipeline.*;
 import com.cui.code.spider.service.DoubanTopicService;
 import org.junit.Test;
 import us.codecraft.webmagic.Spider;
@@ -175,6 +169,20 @@ public class SpiderTest {
         String membersURL = "https://www.douban.com/group/" + groupId + "/members?start=" + start;
         spider.addUrl(membersURL)
                 .addPipeline(new DoubanGroupMembersPipeline())
+                .thread(3).run();
+    }
+
+    /**
+     * 114挂号平台医院列表
+     */
+    @Test
+    public void test114Hospital() {
+        Spider spider = Spider.create(new HospitalListPageProcessor());
+
+        int start = 1;
+        String startURL = "http://www.114yygh.com/hp/" + start + "_0_0_0.htm";
+        spider.addUrl(startURL)
+                .addPipeline(new HospitalList114Pipeline())
                 .thread(3).run();
     }
 }
