@@ -1,5 +1,6 @@
 package com.cui.code.test;
 
+import com.cui.code.test.model.Customer;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
