@@ -1,6 +1,7 @@
 package com.cui.code.test.algorithms.sort;
 
 import com.cui.code.test.leetcode.ListNode;
+import com.cui.code.test.leetcode.sort.InsertionSortListTest;
 import org.junit.Test;
 
 import java.util.Random;
@@ -30,7 +31,7 @@ public class BucketSortTest {
             listNodes[(array - SortUtil.MIN_NUM) / BUCKET_RANGE] = listNode;
         }
         for (ListNode listNode : listNodes) {
-            insertSort(listNode);
+            InsertionSortListTest.insertionSortList(listNode);
         }
 
         int index = 0;
@@ -44,36 +45,26 @@ public class BucketSortTest {
         }
     }
 
-    private void insertSort(ListNode listNode) {
-        if (listNode == null || listNode.next == null) {
-            return;
+    public static void bucketSort(int[] arrays, int min, int max) {
+        ListNode[] listNodes = new ListNode[arrays.length];
+        int BUCKET_RANGE = (max - min) / arrays.length;
+        for (int array : arrays) {
+            ListNode listNode = new ListNode(array);
+            listNode.next = listNodes[array / BUCKET_RANGE];
+            listNodes[(array - min) / BUCKET_RANGE] = listNode;
+        }
+        for (ListNode listNode : listNodes) {
+            InsertionSortListTest.insertionSortList(listNode);
         }
 
-        ListNode headNode = listNode;
-        ListNode insertNode = headNode.next;
-        headNode.next = null;
-
-        while (insertNode != null) {
-            ListNode nextNode = insertNode.next;
-
-            ListNode tempNode = headNode;
-            while (true) {
-                if (insertNode.val < tempNode.val) {
-                    ListNode newInsertNode = new ListNode(tempNode.val);
-                    newInsertNode.next = tempNode.next;
-                    tempNode.val = insertNode.val;
-                    tempNode.next = newInsertNode;
-                    break;
-                } else if (tempNode.next == null) {
-                    tempNode.next = insertNode;
-                    insertNode.next = null;
-                    break;
-                } else {
-                    tempNode = tempNode.next;
-                }
+        int index = 0;
+        for (int i = 0; i < listNodes.length; i++) {
+            ListNode tempNode = listNodes[i];
+            while (tempNode != null) {
+                arrays[index] = tempNode.val;
+                tempNode = tempNode.next;
+                index++;
             }
-
-            insertNode = nextNode;
         }
     }
 

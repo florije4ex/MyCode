@@ -21,4 +21,11 @@ public class SortUtil {
         arrays[j] = arrays[i];
         arrays[i] = temp;
     }
+
+    // 交换数组中index：i和j位置的元素
+    public static void swap2(int[][] arrays, int i, int j) {
+        int[] temp = arrays[j];
+        arrays[j] = arrays[i];
+        arrays[i] = temp;
+    }
 }

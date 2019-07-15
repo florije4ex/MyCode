@@ -14,7 +14,7 @@ import java.util.Random;
  */
 public class QuickSortTest {
 
-    public void quickSort(int[] arrays, int low, int high) {
+    public static void quickSort(int[] arrays, int low, int high) {
         if (low < high) {
             int mid = partition(arrays, low, high);
             quickSort(arrays, low, mid - 1);
@@ -22,7 +22,7 @@ public class QuickSortTest {
         }
     }
 
-    private int partition(int[] arrays, int low, int high) {
+    private static int partition(int[] arrays, int low, int high) {
         int midValue = arrays[low];
         while (low < high) {
             while (low < high && arrays[high] >= midValue) {
