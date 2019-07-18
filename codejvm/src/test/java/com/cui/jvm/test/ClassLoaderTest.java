@@ -2,8 +2,11 @@ package com.cui.jvm.test;
 
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * 类加载器
@@ -46,5 +49,49 @@ public class ClassLoaderTest {
         System.out.println(instance.getClass());
         System.out.println(instance instanceof ClassLoaderTest);
 
+    }
+
+    /**
+     * 从file文件系统中加载远程class文件
+     * 如果是自己直接写的话，目录应该以/ 结尾，并且在package名称的第一级时截止
+     * loadClass方法的参数应该是class的全限定名
+     */
+    @Test
+    public void testURLClassLoaderFromFile() {
+        try {
+            File file = new File("/Users/cuiswing/IdeaProjects/others/MyCode/codetest/target/test-classes/");
+            System.out.println("file exist：" + file.exists());
+            URL url = file.toURL();
+            // URL url = new URL("file:/Users/cuiswing/IdeaProjects/others/MyCode/codetest/target/test-classes/");
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
+            Class<?> thisClass = classLoader.loadClass("com.cui.code.test.model.EvilUser");
+            Object evilUser = thisClass.newInstance();
+            System.out.println(evilUser);
+            classLoader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 从http web服务器中加载远程class文件
+     * 测试结果：NoPackageTest.class 如果没有指定 package 包名，可以直接打到jar包里面，
+     * 如果是带包名的，必须把包名的文件路径也一起打进jar包里面去才行
+     * <p>
+     * 如果是直接返回class文件也没法通过：http://localhost:8080/evil/NoPackageTest.class
+     */
+    @Test
+    public void testURLClassLoaderFromHttp() {
+        try {
+            URL url = new URL("http://localhost:8080/evil/evil.jar");
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
+            Class<?> thisClass = classLoader.loadClass("com.cui.code.test.model.EvilUser");
+            Object evilUser = thisClass.newInstance();
+            System.out.println(evilUser);
+            // System.out.println(thisClass.getMethods()[0].getName());
+            classLoader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
