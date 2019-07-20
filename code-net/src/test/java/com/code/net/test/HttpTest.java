@@ -120,7 +120,7 @@ public class HttpTest {
         // 校验数据：日期格式对不对？开启定时抢票功能后的开抢时间点是否在当前时间之后？预约截止时间是否在当前时间之后，在开抢定时时间之后？
         // validation()
 
-        System.out.println(new Date());
+        System.out.println("启动时间：" + new Date());
         int count = 0;
         while (true) {
             if (++count % 100 == 0) {
@@ -134,7 +134,7 @@ public class HttpTest {
                     if (resultId != null) {
                         System.out.println(count + "：预约成功，退出循环");
                         Date date = new Date();
-                        System.out.println(date);
+                        System.out.println("预约成功时间：" + date);
                         if (bookCardInfo.isEmailNotice()) {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
                             String subject = MessageFormat.format("景区预约成功——{0}:{1}", name, resultId);

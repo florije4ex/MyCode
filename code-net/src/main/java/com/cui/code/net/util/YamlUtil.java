@@ -26,7 +26,8 @@ import java.util.Properties;
  */
 @Slf4j
 public class YamlUtil {
-    private static final String LY_CONFIG_FILE = "/config/user.yml";
+    // 京津冀旅游年卡预约信息
+    private static final String LY_CONFIG_FILE = "/config/jjjlynkBook.yml";
     private static final String HOSPITAL_CONFIG_FILE = "/config/hospitalBook.yml";
     private static final String HOSPITAL_PROPERTIES_FILE = "/properties/hospital.properties";
     private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

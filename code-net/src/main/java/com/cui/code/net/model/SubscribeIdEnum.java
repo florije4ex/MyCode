@@ -14,7 +14,9 @@ public enum SubscribeIdEnum {
     蓝调滑雪预约("14"),
     八达岭野生动物园("15"),
     梦幻影院("16"),
-    明珠山庄温泉浴场("17");
+    明珠山庄温泉浴场("17"),
+    世园会预约("20"),
+    蓝调温泉("21");
 
     private String subscribeId;
 

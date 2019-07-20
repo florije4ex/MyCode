@@ -1,9 +1,9 @@
 # 登陆后的JSESSIONID
 JSESSIONID: D1AE4AXXXXXXXXXXXD7CA21CF07C0B
 #  预约日期 格式必须是：yyyy-MM-dd
-bookDate: 2019-03-02
-#  景区名称，必须取SubscribeIdEnum中对应的名称
-subscribeName: 延庆打铁花
+bookDate: 2019-07-23
+#  景区名称，必须取 SubscribeIdEnum 中对应的名称
+subscribeName: 蓝调温泉
 emailNotice: true
 #  是否开启定时抢票
 timing: false
