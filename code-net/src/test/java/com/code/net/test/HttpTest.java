@@ -21,6 +21,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,8 +121,8 @@ public class HttpTest {
     @Test
     public void testBookTicket() {
         BookCardInfo bookCardInfo = YamlUtil.getBookCardInfo();
-        // 校验数据：日期格式对不对？开启定时抢票功能后的开抢时间点是否在当前时间之后？预约截止时间是否在当前时间之后，在开抢定时时间之后？
-        // validation()
+        // 校验数据
+        boolean validation = validation(bookCardInfo);
 
         System.out.println("启动时间：" + new Date());
         int count = 0;
@@ -169,6 +173,42 @@ public class HttpTest {
                 }
             }
         }
+    }
+
+    /**
+     * 数据校验：日期格式对不对？开启定时抢票功能后的开抢时间点是否在当前时间之后？预约截止时间是否在当前时间之后，在开抢定时时间之后？
+     *
+     * @param bookCardInfo 预约配置数据
+     * @return 校验通过或未通过
+     */
+    private boolean validation(BookCardInfo bookCardInfo) {
+        LocalDate bookDate = LocalDate.parse(bookCardInfo.getBookDate());
+        // 最晚刷票时间点：预约时间点加上24小时（预约日期当天的最后一刻）
+        LocalDateTime maxEndDateTime = LocalDateTime.of(bookDate, LocalTime.MAX);
+        Date maxEndDate = Date.from(maxEndDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        Date now = new Date();
+        if (bookCardInfo.isTiming()) {
+            if (bookCardInfo.getTimingStartTime().before(now)) {
+                // 懒得包装自定义异常了，就直接甩锅吧
+                throw new RuntimeException("定时开抢时间(" + bookCardInfo.getTimingStartTime() + ")不能比当前时间(" + now + ")还早，" +
+                        "建议：定时开抢时间设置为放票时间前5~10分钟。");
+            } else if (bookCardInfo.getTimingStartTime().after(maxEndDate)) {
+                throw new RuntimeException("定时开抢时间(" + bookCardInfo.getTimingStartTime() + ")不能比预约日期(" + maxEndDate + ")还晚，" +
+                        "建议：定时开抢时间设置为放票时间前5~10分钟。");
+            }
+        }
+
+
+        if (bookCardInfo.getEndTime().before(now)) {
+            throw new RuntimeException("预约截止时间(" + bookCardInfo.getEndTime() + ")不能比当前时间(" + now + ")还早，" +
+                    "建议：预约截止时间设置为预约日期前几个小时并且不应超过预约日期当天的24点，请仔细考虑后再设置。");
+        } else if (bookCardInfo.getEndTime().after(maxEndDate)) {
+            System.out.println("预约截止时间（" + bookCardInfo.getEndTime() + "）已超过最大截止时间点（" + maxEndDate + "）,已修正。");
+            bookCardInfo.setEndTime(maxEndDate);
+        }
+
+        return true;
     }
 
     /**
