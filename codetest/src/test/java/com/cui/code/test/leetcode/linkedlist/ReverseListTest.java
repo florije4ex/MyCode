@@ -12,15 +12,42 @@ import org.junit.Test;
  */
 public class ReverseListTest {
 
+    /**
+     * 遍历法：将当前节点的下一个节点缓存后更改当前节点指针
+     *
+     * @param head
+     * @return
+     */
     public ListNode reverseList(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
         ListNode reverseList = null;
+        ListNode next;
         while (head != null) {
-            ListNode newNode = new ListNode(head.val);
-            newNode.next = reverseList;
-            reverseList = newNode;
-            head = head.next;
+            next = head.next;
+            head.next = reverseList;
+            reverseList = head;
+            head = next;
         }
         return reverseList;
+    }
+
+    /**
+     * 递归法
+     *
+     * @param head
+     * @return
+     */
+    public ListNode reverseListLoop(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        ListNode revList = reverseListLoop(head.next);
+        head.next.next = head;
+        head.next = null;
+        return revList;
     }
 
     @Test
@@ -35,7 +62,7 @@ public class ReverseListTest {
         listNode3.next = listNode4;
         listNode4.next = listNode5;
 
-        ListNode listNode = reverseList(head);
+        ListNode listNode = reverseListLoop(head);
         System.out.println(listNode);
     }
 }
