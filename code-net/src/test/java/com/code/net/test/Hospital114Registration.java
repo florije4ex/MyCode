@@ -25,6 +25,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -54,6 +57,8 @@ public class Hospital114Registration {
     private static final int SUCCESS_CODE = 1;
     private static final int NO_LOGIN = 2009;
     private static final int SMS_VERIFY_ERROR = 7001;
+    private static final String KEY = "hyde2019hyde2019";
+    private static final String ALGORITHMSTR = "AES/ECB/PKCS5Padding";
 
 
     public static void main(String[] args) {
@@ -98,7 +103,7 @@ public class Hospital114Registration {
                     }
                     System.out.println(afternoonDutyDoctorInfos);
 
-                    System.out.println("晚上的值班医生：");
+                    System.out.println("晚上有号可挂的值班医生：");
                     List<DutyDoctorInfo> otherDutyDoctorInfos = data.get(4);
                     if (otherDutyDoctorInfos != null) {
                         otherDutyDoctorInfos.removeIf(dutyDoctorInfo -> dutyDoctorInfo.getRemainAvailableNumber() <= 0);
@@ -280,7 +285,7 @@ public class Hospital114Registration {
      * @param hospitalBookInfo 预约信息
      * @return 值班信息
      */
-    private DutyDTO getDoctorIdAndDutySourceId(HospitalBookInfo hospitalBookInfo) throws NoSuchAlgorithmException {
+    private DutyDTO getDoctorIdAndDutySourceId(HospitalBookInfo hospitalBookInfo) throws Exception {
         String dutyURL = "http://www.114yygh.com/dpt/build/duty.htm";
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -345,8 +350,8 @@ public class Hospital114Registration {
      * @param hospitalBookInfo 预约信息
      * @return cookies
      */
-    private String platformLogin(HospitalBookInfo hospitalBookInfo) throws NoSuchAlgorithmException {
-        String loginStep1URL = "http://www.114yygh.com/account/loginStep1.htm";
+    private String platformLogin(HospitalBookInfo hospitalBookInfo) throws Exception {
+        String loginStep1URL = "http://www.114yygh.com/web/login/step.htm";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Connection", "keep-alive");
@@ -362,34 +367,30 @@ public class Hospital114Registration {
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
         parameter.add("mobileNo", hospitalBookInfo.getMobileNo());
+        parameter.add("loginType", "PASSWORD_LOGIN");
         parameter.add("redirectUrl", "/index.htm");
+        parameter.add("step", "2");
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
 
         String responseBody = restTemplate.postForObject(loginStep1URL, request, String.class);
 
-
-        // 解析网页form表单中的参数
-        Document document = Jsoup.parse(responseBody);
-        String token = document.select("#loginStep2_pwd_form > input[name=token]").attr("value");
-        String mobileNoForm = document.select("#loginStep2_pwd_form > input[name=mobileNo]").attr("value");
-        String smsType = document.select("#loginStep2_pwd_form > input[name=smsType]").attr("value");
-        String loginType = document.select("#loginStep2_pwd_form > input[name=loginType]").attr("value");
-        String redirectUrl = document.select("#loginStep2_pwd_form > input[name=redirectUrl]").attr("value");
         // 明文密码进行base64编码
         // String password = new String(Base64.getEncoder().encode(hospitalBookInfo.getPassword().getBytes()));
         // 新加密方式改为了SHA1
-        String password = sha1Hex(hospitalBookInfo.getPassword());
+        // String password = sha1Hex(hospitalBookInfo.getPassword());
+        // 加密方式又改了，~~~~(>_<)~~~~ ‍Crypto的AES加密和解密
+        // PKCS5Padding与js的Pkcs7一致
+        String mobileNo = aesEncrypt(hospitalBookInfo.getMobileNo(), KEY);
+        String password = aesEncrypt(hospitalBookInfo.getPassword(), KEY);
 
         MultiValueMap<String, String> parameter2 = new LinkedMultiValueMap<>();
-        parameter2.add("token", token);
-        parameter2.add("mobileNo", mobileNoForm);
-        parameter2.add("smsType", smsType);
-        parameter2.add("loginType", loginType);
-        parameter2.add("redirectUrl", redirectUrl);
+        parameter2.add("mobileNo", mobileNo);
         parameter2.add("password", password);
+        parameter2.add("loginType", "PASSWORD_LOGIN");
+        parameter2.add("isAjax", "true");
         HttpEntity<Object> request2 = new HttpEntity<>(parameter2, httpHeaders);
 
-        String loginStep2URL = "http://www.114yygh.com/account/loginStep2.htm";
+        String loginStep2URL = "http://www.114yygh.com/web/login/doLogin.htm";
 
         ResponseEntity<String> response2 = restTemplate.postForEntity(loginStep2URL, request2, String.class);
         return String.join(";", response2.getHeaders().get("Set-Cookie"));
@@ -409,6 +410,21 @@ public class Hospital114Registration {
             hexValue.append(Integer.toHexString(val));
         }
         return hexValue.toString();
+    }
+
+    /**
+     * 加密
+     */
+    private static String aesEncrypt(String content, String encryptKey) throws Exception {
+        return Base64.getEncoder().encodeToString(aesEncryptToBytes(content, encryptKey));
+    }
+
+    private static byte[] aesEncryptToBytes(String content, String encryptKey) throws Exception {
+        KeyGenerator kgen = KeyGenerator.getInstance("AES");
+        kgen.init(128);
+        Cipher cipher = Cipher.getInstance(ALGORITHMSTR);
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(encryptKey.getBytes(), "AES"));
+        return cipher.doFinal(content.getBytes("utf-8"));
     }
 
 
