@@ -134,19 +134,19 @@ public class HttpTest {
             try {
                 BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo);
                 if (bookInfo != null) {
-                    String resultId = lynkBook(bookInfo);
-                    if (resultId != null) {
+                    boolean result = lynkBook(bookInfo);
+                    if (result) {
                         System.out.println(count + "：预约成功，退出循环");
                         Date date = new Date();
                         System.out.println("预约成功时间：" + date);
                         if (bookCardInfo.isEmailNotice()) {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
-                            String subject = MessageFormat.format("景区预约成功——{0}:{1}", name, resultId);
+                            String subject = MessageFormat.format("景区预约成功——{0}", name);
                             String content = MessageFormat.format("<h3>预约信息：</h3><ol><li>预约卡号：{0}</li><li>预约景区：{1}</li>" +
                                             "<li>预约日期：{2}</li><li>预约成功id：{3}</li><li>预约成功时间：{4}</li></ol>" +
                                             "<h4>其他信息：</h4><p>预约详情：{5}</p>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
-                                    bookCardInfo.getBookDate(), resultId, date, JSON.toJSONString(bookCardInfo));
+                                    bookCardInfo.getBookDate(), "暂时隐藏", date, JSON.toJSONString(bookCardInfo));
                             MailUtil.sendMailByConfig(subject, content);
                         }
                         return;
@@ -287,7 +287,7 @@ public class HttpTest {
     /**
      * 京津冀旅游年卡景区预约提交
      */
-    private String lynkBook(BookCardInfo bookCardInfo) {
+    private boolean lynkBook(BookCardInfo bookCardInfo) {
         Map<String, String> statusMap = new HashMap<>();
         statusMap.put("1", "预约成功");
         statusMap.put("2", "预约失败，请重试！");
@@ -299,15 +299,15 @@ public class HttpTest {
         String bookURL = "http://zglynk.com/ITS/itsApp/saveUserSubscribeInfo.action";
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Host", "zglynk.com");
-        httpHeaders.add("Pragma", "no-cache");
-        httpHeaders.add("Cache-Control", "max-age=0");
-        httpHeaders.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
-        httpHeaders.add("Origin", "http://zglynk.com");
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
-        httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId());
-        httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.8");
-        httpHeaders.add("Cookie", "JSESSIONID=" + bookCardInfo.getJSESSIONID());
+        httpHeaders.add(HttpHeaders.HOST, "zglynk.com");
+        httpHeaders.add(HttpHeaders.PRAGMA, "no-cache");
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
+        httpHeaders.add(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
+        httpHeaders.add(HttpHeaders.ORIGIN, "http://zglynk.com");
+        httpHeaders.add(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
+        httpHeaders.add(HttpHeaders.REFERER, "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId());
+        httpHeaders.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,en-US;q=0.8");
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + bookCardInfo.getJSESSIONID());
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
         parameter.add("subscribeId", bookCardInfo.getSubscribeId());
@@ -323,11 +323,12 @@ public class HttpTest {
         int count = 0;
         for (int i = 0; i < 3; i++) {
             try {
+                // 成功响应：{"status":"1","message":"成功"}
                 String responseBody = restTemplate.postForObject(bookURL, request, String.class);
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 if ("1".equals(jsonObject.getString("status"))) {
                     System.out.println(responseBody);
-                    return jsonObject.getString("id");
+                    return true;
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
                     System.out.println(statusMap.getOrDefault(jsonObject.getString("status"), "预约失败，请重试！"));
@@ -337,14 +338,7 @@ public class HttpTest {
                 e.printStackTrace();
             }
         }
-        return null;
-
-        // 成功：
-        //"{\n" +
-        //        "\t\"status\": \"1\",\n" +
-        //        "\t\"message\": \"成功\",\n" +
-        //        "\t\"id\": \"76198\"\n" +
-        //        "}"
+        return false;
     }
 
     /**
@@ -356,14 +350,14 @@ public class HttpTest {
         String loginPassword = "密码";
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Host", "zglynk.com");
-        httpHeaders.add("Pragma", "no-cache");
-        httpHeaders.add("Cache-Control", "max-age=0");
-        httpHeaders.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
-        httpHeaders.add("Origin", "http://zglynk.com");
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
-        httpHeaders.add("Referer", "http://zglynk.com/ITS/itsApp/login.jsp");
-        httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.8");
+        httpHeaders.add(HttpHeaders.HOST, "zglynk.com");
+        httpHeaders.add(HttpHeaders.PRAGMA, "no-cache");
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
+        httpHeaders.add(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,image/wxpic,image/sharpp,image/apng,image/tpg,*/*;q=0.8");
+        httpHeaders.add(HttpHeaders.ORIGIN, "http://zglynk.com");
+        httpHeaders.add(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Linux; Android 8.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044403 Mobile Safari/537.36 MMWEBID/1085 MicroMessenger/6.7.3.1360(0x2607033A) NetType/WIFI Language/zh_CN Process/tools");
+        httpHeaders.add(HttpHeaders.REFERER, "http://zglynk.com/ITS/itsApp/login.jsp");
+        httpHeaders.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,en-US;q=0.8");
         httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
 
         MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
