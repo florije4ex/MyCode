@@ -2,10 +2,8 @@ package com.code.net.test;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.code.net.test.dto.DutyCalendar;
-import com.code.net.test.dto.DutyDTO;
-import com.code.net.test.dto.DutyDoctorInfo;
-import com.code.net.test.dto.HospitalCalendarDTO;
+import com.alibaba.fastjson.TypeReference;
+import com.code.net.test.dto.*;
 import com.cui.code.net.exception.HospitalException;
 import com.cui.code.net.model.hospital.DutyTime;
 import com.cui.code.net.model.hospital.HospitalBookInfo;
@@ -19,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -54,11 +53,14 @@ public class Hospital114Registration {
 
     // 登陆后的cookie信息
     private String cookies = "";
-    private static final int SUCCESS_CODE = 1;
-    private static final int NO_LOGIN = 2009;
+    private static final Integer SUCCESS_CODE = 0;
+    private static final Integer NO_LOGIN = 102;
     private static final int SMS_VERIFY_ERROR = 7001;
     private static final String KEY = "hyde2019hyde2019";
     private static final String ALGORITHMSTR = "AES/ECB/PKCS5Padding";
+    // 登陆方式
+    private static final String LOGIN_TYPE_PASSWORD = "PASSWORD_LOGIN";
+    private static final String LOGIN_TYPE_SMS = "SMS_CODE_LOGIN";
 
 
     public static void main(String[] args) {
@@ -78,6 +80,14 @@ public class Hospital114Registration {
                 System.out.println(new Date());
             }
             try {
+                if (cookies == null || cookies.isEmpty()) {
+                    // 登陆
+                    cookies = platformLogin(hospitalBookInfo, LOGIN_TYPE_SMS);
+                    if (cookies == null || cookies.isEmpty()) {
+                        continue;
+                    }
+                }
+
                 boolean hasNumber = hasNumber(hospitalBookInfo);
                 // 没有号就等一秒多再看看
                 if (!hasNumber) {
@@ -87,7 +97,7 @@ public class Hospital114Registration {
                 }
 
                 DutyDTO dutyDTO = getDoctorIdAndDutySourceId(hospitalBookInfo);
-                if (dutyDTO != null && dutyDTO.getCode() == 1) {
+                if (dutyDTO != null && dutyDTO.getResCode() == 1) {
                     Map<Integer, List<DutyDoctorInfo>> data = dutyDTO.getData();
                     System.out.println("上午有号可挂的值班医生：");
                     List<DutyDoctorInfo> morningDutyDoctorInfos = data.get(1);
@@ -187,7 +197,7 @@ public class Hospital114Registration {
                     String personalId = getPersonalId(hospitalBookInfo, doctorId);
 
                     // 获取短信验证码
-                    sendBookSmsCode();
+                    getVerifyCode(hospitalBookInfo, "");
 
                     System.out.println("输入手机上收到的【114预约挂号】的短信验证码：");
                     String smsVerifyCode = scanner.nextLine();
@@ -223,36 +233,45 @@ public class Hospital114Registration {
      * @return 是否有足够的号源
      */
     private boolean hasNumber(HospitalBookInfo hospitalBookInfo) throws HospitalException {
-        String getCalendarIdURL = "http://www.114yygh.com/dpt/week/calendar.htm";
+        // 科室排班表
+        String getCalendarIdURL = "http://www.114yygh.com/web/product/list";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Origin", "http://www.114yygh.com");
         httpHeaders.add("Accept-Encoding", "gzip, deflate");
         httpHeaders.add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7");
         httpHeaders.add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36");
-        httpHeaders.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.add("Accept", "application/json, text/javascript, */*; q=0.01");
         httpHeaders.add("Referer", "http://www.114yygh.com/dpt/calendar/" + hospitalBookInfo.getHospitalId()
                 + "-" + hospitalBookInfo.getDepartmentId() + ".htm");
         httpHeaders.add("X-Requested-With", "XMLHttpRequest");
         httpHeaders.add("Connection", "keep-alive");
+        httpHeaders.add(HttpHeaders.COOKIE, cookies);
 
-        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
-        parameter.add("departmentId", hospitalBookInfo.getDepartmentId());
-        parameter.add("departmentName", "");
-        parameter.add("isAjax", "true");
-        parameter.add("relType", "0");
-        parameter.add("sdFirstId", "0");
-        parameter.add("sdSecondId", "0");
-        parameter.set("week", "1");
-        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
+        jsonObject.put("departmentId", hospitalBookInfo.getDepartmentId());
+        jsonObject.put("latitude", "39.91488908");
+        jsonObject.put("longitude", "116.40387397");
+        jsonObject.put("week", "1");
+        HttpEntity<Object> request = new HttpEntity<>(jsonObject.toString(), httpHeaders);
 
         // 这里如果请求太快，会被拒绝：Response 403 FORBIDDEN
         String responseBody = restTemplate.postForObject(getCalendarIdURL, request, String.class);
-        HospitalCalendarDTO hospitalCalendarDTO = JSON.parseObject(responseBody, HospitalCalendarDTO.class);
+        HospitalBaseDTO<HospitalCalendarListDTO> hospitalBaseDTO = JSON.parseObject(responseBody, new TypeReference<HospitalBaseDTO<HospitalCalendarListDTO>>() {
+        });
+        if (NO_LOGIN.equals(hospitalBaseDTO.getResCode())) {
+            try {
+                cookies = platformLogin(hospitalBookInfo, LOGIN_TYPE_SMS);
+                return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        HospitalCalendarListDTO hospitalCalendarListDTO = hospitalBaseDTO.getData();
 
-        Date firstDutyDate = hospitalCalendarDTO.getDutyCalendars().get(0).getDutyDate();
+        Date firstDutyDate = hospitalCalendarListDTO.getCalendars().get(0).getDutyDate();
         if (hospitalBookInfo.getBookDate().before(firstDutyDate)) {
             throw new HospitalException("最早可挂号日期：" + dateFormat.format(firstDutyDate) + "，你的预约日期："
                     + dateFormat.format(hospitalBookInfo.getBookDate()) + "，已经结束挂号。往后调几天吧。");
@@ -263,17 +282,18 @@ public class Hospital114Registration {
         long days = DAYS.between(firstDutyDateTime, bookDateTime);
         long skipWeek = days / 7;
         if (skipWeek > 0) {
-            parameter.set("week", String.valueOf(skipWeek + 1));
+            jsonObject.put("week", String.valueOf(skipWeek + 1));
             responseBody = restTemplate.postForObject(getCalendarIdURL, request, String.class);
-            hospitalCalendarDTO = JSON.parseObject(responseBody, HospitalCalendarDTO.class);
+            hospitalBaseDTO = JSON.parseObject(responseBody, new TypeReference<HospitalBaseDTO<HospitalCalendarListDTO>>() {
+            });
         }
+        hospitalCalendarListDTO = hospitalBaseDTO.getData();
 
         // 这里得考虑一下预约日期比最大可预约日期还大的情况，应该设置定时，避免程序空跑
-        if (hospitalCalendarDTO.isHasNumber()) {
-            for (DutyCalendar dutyCalendar : hospitalCalendarDTO.getDutyCalendars()) {
-                if (dutyCalendar.getDutyDate().equals(hospitalBookInfo.getBookDate())) {
-                    return dutyCalendar.getRemainAvailableNumber() > 0;
-                }
+
+        for (DutyCalendar dutyCalendar : hospitalCalendarListDTO.getCalendars()) {
+            if (dutyCalendar.getDutyDate().equals(hospitalBookInfo.getBookDate())) {
+                return dutyCalendar.getDutyStatus() == 1;
             }
         }
         return false;
@@ -286,27 +306,18 @@ public class Hospital114Registration {
      * @return 值班信息
      */
     private DutyDTO getDoctorIdAndDutySourceId(HospitalBookInfo hospitalBookInfo) throws Exception {
-        String dutyURL = "http://www.114yygh.com/dpt/build/duty.htm";
+        String dutyURL = "http://www.114yygh.com/web/product/detail";
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Origin", "http://www.114yygh.com");
-        httpHeaders.add("Accept-Encoding", "gzip, deflate");
-        httpHeaders.add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7");
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36");
-        httpHeaders.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        httpHeaders.add("Accept", "application/json, text/javascript, */*;q=0.01");
-        httpHeaders.add("Referer", "http://www.114yygh.com/dpt/calendar/.htm");
-        httpHeaders.add("X-Requested-With", "XMLHttpRequest");
-        httpHeaders.add("Connection", "keep-alive");
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.add("Cookie", cookies);
 
-        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
-        parameter.add("departmentId", hospitalBookInfo.getDepartmentId());
+        JSONObject requestObject = new JSONObject();
+        requestObject.put("hospitalId", String.valueOf(hospitalBookInfo.getHospitalId()));
+        requestObject.put("departmentId", hospitalBookInfo.getDepartmentId());
         // 预约日期
-        parameter.add("dutyDate", dateFormat.format(hospitalBookInfo.getBookDate()));
-        parameter.add("isAjax", "true");
-        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
+        requestObject.put("dutyDate", dateFormat.format(hospitalBookInfo.getBookDate()));
+        HttpEntity<Object> request = new HttpEntity<>(requestObject.toString(), httpHeaders);
 
         String responseBody = restTemplate.postForObject(dutyURL, request, String.class);
         // {"data":[],"hasError":true,"code":2009,"msg":"用户未登录!"}
@@ -332,7 +343,7 @@ public class Hospital114Registration {
             int code = jsonObject.getIntValue("code");
             // 未登录
             if (code == NO_LOGIN) {
-                cookies = platformLogin(hospitalBookInfo);
+                cookies = platformLogin(hospitalBookInfo, LOGIN_TYPE_SMS);
                 logger.info("cookie:{}", cookies);
             } else {
                 // 其他未知的错误返回信息？怎么办
@@ -350,29 +361,10 @@ public class Hospital114Registration {
      * @param hospitalBookInfo 预约信息
      * @return cookies
      */
-    private String platformLogin(HospitalBookInfo hospitalBookInfo) throws Exception {
-        String loginStep1URL = "http://www.114yygh.com/web/login/step.htm";
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Connection", "keep-alive");
-        httpHeaders.add("Cache-Control", "max-age=0");
-        httpHeaders.add("Origin", "http://www.114yygh.com");
-        httpHeaders.add("Upgrade-Insecure-Requests", "1");
-        httpHeaders.add("Content-Type", "application/x-www-form-urlencoded");
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36");
-        httpHeaders.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
-        httpHeaders.add("Referer", "http://www.114yygh.com/account/login.htm");
-        httpHeaders.add("Accept-Encoding", "gzip, deflate");
-        httpHeaders.add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7");
-
-        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("mobileNo", hospitalBookInfo.getMobileNo());
-        parameter.add("loginType", "PASSWORD_LOGIN");
-        parameter.add("redirectUrl", "/index.htm");
-        parameter.add("step", "2");
-        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
-
-        String responseBody = restTemplate.postForObject(loginStep1URL, request, String.class);
+    private String platformLogin(HospitalBookInfo hospitalBookInfo, String loginType) throws Exception {
+        String loginStep1URL = "http://www.114yygh.com/web/verify?mobile=" + hospitalBookInfo.getMobileNo();
+        String responseBody = restTemplate.getForObject(loginStep1URL, String.class);
+        System.out.println(responseBody);
 
         // 明文密码进行base64编码
         // String password = new String(Base64.getEncoder().encode(hospitalBookInfo.getPassword().getBytes()));
@@ -380,20 +372,49 @@ public class Hospital114Registration {
         // String password = sha1Hex(hospitalBookInfo.getPassword());
         // 加密方式又改了，~~~~(>_<)~~~~ ‍Crypto的AES加密和解密
         // PKCS5Padding与js的Pkcs7一致
-        String mobileNo = aesEncrypt(hospitalBookInfo.getMobileNo(), KEY);
-        String password = aesEncrypt(hospitalBookInfo.getPassword(), KEY);
+        // String mobileNo = aesEncrypt(hospitalBookInfo.getMobileNo(), KEY);
+        // String password = aesEncrypt(hospitalBookInfo.getPassword(), KEY);
 
-        MultiValueMap<String, String> parameter2 = new LinkedMultiValueMap<>();
-        parameter2.add("mobileNo", mobileNo);
-        parameter2.add("password", password);
-        parameter2.add("loginType", "PASSWORD_LOGIN");
-        parameter2.add("isAjax", "true");
-        HttpEntity<Object> request2 = new HttpEntity<>(parameter2, httpHeaders);
 
-        String loginStep2URL = "http://www.114yygh.com/web/login/doLogin.htm";
+        String mobileNo = null;
+        String password = null;
+        if (LOGIN_TYPE_SMS.equals(loginType)) {
+            boolean verifyCode = getVerifyCode(hospitalBookInfo, "LOGIN");
+            if (!verifyCode) {
+                return null;
+            }
 
-        ResponseEntity<String> response2 = restTemplate.postForEntity(loginStep2URL, request2, String.class);
-        return String.join(";", response2.getHeaders().get("Set-Cookie"));
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("输入手机上收到的【114预约挂号】的短信验证码：");
+            String smsVerifyCode = scanner.nextLine();
+
+            mobileNo = aesEncrypt(hospitalBookInfo.getMobileNo(), KEY);
+            password = aesEncrypt(smsVerifyCode, KEY);
+        } else if (LOGIN_TYPE_PASSWORD.equals(loginType)) {
+            mobileNo = hospitalBookInfo.getMobileNo();
+            password = sha1Hex(hospitalBookInfo.getPassword());
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("mobile", mobileNo);
+        jsonObject.put("password", password);
+        jsonObject.put("loginType", loginType);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> request = new HttpEntity<>(jsonObject.toString(), httpHeaders);
+
+        String loginStep2URL = "http://www.114yygh.com/web/login";
+
+        ResponseEntity<String> response2 = restTemplate.postForEntity(loginStep2URL, request, String.class);
+        HospitalBaseDTO hospitalBaseDTO = JSON.parseObject(response2.getBody(), HospitalBaseDTO.class);
+        System.out.println("HospitalBaseDTO：" + hospitalBaseDTO);
+        if (SUCCESS_CODE.equals(hospitalBaseDTO.getResCode())) {
+            String cookie = String.join(";", response2.getHeaders().get("Set-Cookie"));
+            System.out.println("cookie:" + cookie);
+            return cookie;
+        }
+        return null;
     }
 
     // sha1加密
@@ -413,10 +434,13 @@ public class Hospital114Registration {
     }
 
     /**
-     * 加密
+     * 加密后 将+替换为-，将/替换为_
      */
     private static String aesEncrypt(String content, String encryptKey) throws Exception {
-        return Base64.getEncoder().encodeToString(aesEncryptToBytes(content, encryptKey));
+        String encode = Base64.getEncoder().encodeToString(aesEncryptToBytes(content, encryptKey));
+        encode = encode.replace("+", "-");
+        encode = encode.replace("/", "_");
+        return encode;
     }
 
     private static byte[] aesEncryptToBytes(String content, String encryptKey) throws Exception {
@@ -429,22 +453,17 @@ public class Hospital114Registration {
 
 
     /**
-     * 发送验证码，预定的最后一步
+     * 发送验证码：登陆、
      */
-    private void sendBookSmsCode() {
-        String sendSmsCodeURL = "http://www.114yygh.com/v/sendorder.htm";
+    private boolean getVerifyCode(HospitalBookInfo hospitalBookInfo, String smsKey) {
+        String sendSmsCodeURL = "http://www.114yygh.com/web/getVerifyCode?mobile=" + hospitalBookInfo.getMobileNo() +
+                "&smsKey=" + smsKey + "&rd=" + System.currentTimeMillis();
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Origin", "http://www.114yygh.com");
-        httpHeaders.add("Cookie", cookies);
-
-        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
-        parameter.add("isAjax", "true");
-        HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
-
-        String responseBody = restTemplate.postForObject(sendSmsCodeURL, request, String.class);
+        String responseBody = restTemplate.getForObject(sendSmsCodeURL, String.class);
         System.out.println(responseBody);
-        // {"code":200,"msg":"OK."}
+        HospitalBaseDTO hospitalBaseDTO = JSON.parseObject(responseBody, HospitalBaseDTO.class);
+        return SUCCESS_CODE.equals(hospitalBaseDTO.getResCode());
+        // {"resCode":0,"msg":null,"data":null}
     }
 
     // 获取就诊人id
