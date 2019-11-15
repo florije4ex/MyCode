@@ -20,6 +20,7 @@ public enum SubscribeIdEnum {
     太平洋海底世界预约("22"),
     蓝调温泉("30"),
     欢乐谷2020("31"),
+    金面王朝预约("24"),
     ;
 
     private String subscribeId;
