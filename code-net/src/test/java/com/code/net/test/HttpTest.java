@@ -182,7 +182,8 @@ public class HttpTest {
      * @return 校验通过或未通过
      */
     private boolean validation(BookCardInfo bookCardInfo) {
-        LocalDate bookDate = LocalDate.parse(bookCardInfo.getBookDate());
+        String maxDate = Collections.max(bookCardInfo.getBookDateList());
+        LocalDate bookDate = LocalDate.parse(maxDate);
         // 最晚刷票时间点：预约时间点加上24小时（预约日期当天的最后一刻）
         LocalDateTime maxEndDateTime = LocalDateTime.of(bookDate, LocalTime.MAX);
         Date maxEndDate = Date.from(maxEndDateTime.atZone(ZoneId.systemDefault()).toInstant());
@@ -246,17 +247,17 @@ public class HttpTest {
         for (Element tr : trs) {
             Elements tds = tr.getElementsByTag("td");
             Element date = tds.get(0);
-            if (bookCardInfo.getBookDate().equals(date.text())) {
+            // 多个日期只要有任何一个满足即可预约
+            if (bookCardInfo.getBookDateList().contains(date.text())) {
                 Element bookTd = tds.get(2);
                 String bookText = bookTd.text();
                 if (bookText.startsWith("可预约")) {
                     Elements input = bookTd.getElementsByTag("input");
                     String subscribeCalendarId = input.attr("value");
                     bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
+                    bookCardInfo.setBookDate(date.text());
                     dateFlag = true;
                     break;
-                } else {
-                    return null;
                 }
             }
         }
