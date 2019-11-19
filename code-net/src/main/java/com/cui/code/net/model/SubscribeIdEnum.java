@@ -8,7 +8,6 @@ package com.cui.code.net.model;
  */
 public enum SubscribeIdEnum {
 
-    奥林匹克塔("7"),
     延庆打铁花("8"),
     天津中华曲苑相声会馆("9"),
     蓝调滑雪预约("14"),
@@ -21,6 +20,8 @@ public enum SubscribeIdEnum {
     蓝调温泉("30"),
     欢乐谷2020("31"),
     金面王朝预约("24"),
+    中央广播电视塔("32"),
+    奥林匹克塔("33"),
     ;
 
     private String subscribeId;

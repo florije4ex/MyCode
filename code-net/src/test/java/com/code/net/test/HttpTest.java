@@ -64,18 +64,18 @@ public class HttpTest {
         ExecutorService executorService = Executors.newWorkStealingPool();
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Host", "s.creditcard.ecitic.com");
-        httpHeaders.add("Pragma", "no-cache");
-        httpHeaders.add("Cache-Control", "no-cache");
-        httpHeaders.add("Accept", "application/json");
-        httpHeaders.add("Origin", "https://s.creditcard.ecitic.com");
+        httpHeaders.add(HttpHeaders.HOST, "s.creditcard.ecitic.com");
+        httpHeaders.add(HttpHeaders.PRAGMA, "no-cache");
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache");
+        httpHeaders.add(HttpHeaders.ACCEPT, "application/json");
+        httpHeaders.add(HttpHeaders.ORIGIN, "https://s.creditcard.ecitic.com");
         httpHeaders.add("x-requested-with", "XMLHttpRequest");
         httpHeaders.add("deviceInfo", "undefined");
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 8.0.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/63.0.3239.111 Mobile Safari/537.36 DKKJ/4.1.0/DKKJ_TOWER_1.0 DKKJ_TOWER_1.0");
-        httpHeaders.add("Content-Type", "application/json; charset=UTF-8");
-        httpHeaders.add("Referer", "https://s.creditcard.ecitic.com/citiccard/lotteryfrontend/IntegralLottery.html");
-        httpHeaders.add("Accept-Language", "zh-CN,en-US;q=0.9");
-        httpHeaders.add("Cookie", "");
+        httpHeaders.add(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Linux; Android 8.0.0; MI 6 Build/OPR1.170623.027; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/63.0.3239.111 Mobile Safari/537.36 DKKJ/4.1.0/DKKJ_TOWER_1.0 DKKJ_TOWER_1.0");
+        httpHeaders.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+        httpHeaders.add(HttpHeaders.REFERER, "https://s.creditcard.ecitic.com/citiccard/lotteryfrontend/IntegralLottery.html");
+        httpHeaders.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,en-US;q=0.9");
+        httpHeaders.add(HttpHeaders.COOKIE, "");
 
         JSONObject request = new JSONObject();
         request.put("actId", "JFCJHD");
