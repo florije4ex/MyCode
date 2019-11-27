@@ -377,7 +377,7 @@ public class HttpTest {
     public void testCancelBookTicket() {
         String JSESSIONID = "自己登陆后的jsessionid";
         //要取消的景区
-        String cancelName = SubscribeIdEnum.天津中华曲苑相声会馆.name();
+        String cancelName = SubscribeIdEnum.奥林匹克塔.name();
 
         System.out.println(new Date());
         int count = 0;
@@ -421,7 +421,8 @@ public class HttpTest {
         for (Element li : lis) {
             Element aNode = li.getElementsByTag("a").first();
             String ticketTitle = aNode.select("p.font34").text();
-            if (ticketTitle.contains(cancelName)) {
+            String bookStatusDescription = aNode.select("p.mart30.color-01b584").text();
+            if (ticketTitle.contains(cancelName) && bookStatusDescription.contains("预约成功")) {
                 String href = aNode.attr("href");
                 String bookId = href.substring("goViewUserSubscribe.action?id=".length());
                 return bookId;
