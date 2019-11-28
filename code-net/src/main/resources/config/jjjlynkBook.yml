@@ -1,6 +1,6 @@
 # 登陆后的JSESSIONID
 JSESSIONID: D1AE4AXXXXXXXXXXXD7CA21CF07C0B
-#  预约日期 格式必须是：yyyy-MM-dd
+#  预约日期，可以多选，列表格式， 格式必须是：yyyy-MM-dd
 bookDateList:
 - 2019-11-20
 - 2019-11-21
