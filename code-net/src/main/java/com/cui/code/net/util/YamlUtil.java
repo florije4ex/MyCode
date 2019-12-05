@@ -27,14 +27,21 @@ import java.util.Properties;
 @Slf4j
 public class YamlUtil {
     // 京津冀旅游年卡预约信息
-    private static final String LY_CONFIG_FILE = "/config/jjjlynkBook.yml";
+    public static final String LY_CONFIG_FILE = "/config/jjjlynkBook.yml";
+    public static final String LY_CONFIG_FILE2 = "/config/jjjlynkBook2.yml";
     private static final String HOSPITAL_CONFIG_FILE = "/config/hospitalBook.yml";
     private static final String HOSPITAL_PROPERTIES_FILE = "/properties/hospital.properties";
     private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public static BookCardInfo getBookCardInfo() {
+    /**
+     * 加载配置文件数据
+     *
+     * @param configFile 如果传递了配置文件则加载指定的，未指定则加载默认的文件 jjjlynkBook.yml
+     */
+    public static BookCardInfo getBookCardInfo(String... configFile) {
         Yaml yaml = new Yaml(new Constructor(BookCardInfo.class));
-        InputStream inputStream = YamlUtil.class.getResourceAsStream(LY_CONFIG_FILE);
+        String file = configFile.length > 0 ? configFile[0] : LY_CONFIG_FILE;
+        InputStream inputStream = YamlUtil.class.getResourceAsStream(file);
         BookCardInfo bookCardInfo = yaml.load(inputStream);
 
         LocalDateTime startTime = LocalDateTime.parse(bookCardInfo.getTimingStartTimeConfig(), dateTimeFormatter);

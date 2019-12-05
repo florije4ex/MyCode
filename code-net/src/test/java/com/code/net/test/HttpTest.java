@@ -115,6 +115,12 @@ public class HttpTest {
         }
     }
 
+
+    public static void main(String[] args) {
+        HttpTest httpTest = new HttpTest();
+        httpTest.testBookTicket();
+    }
+
     /**
      * 京津冀旅游年卡景区预定 测试
      */
