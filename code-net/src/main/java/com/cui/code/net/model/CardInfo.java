@@ -1,54 +1,28 @@
 package com.cui.code.net.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 /**
  * 预订卡信息
  */
+@Data
+@AllArgsConstructor
 public class CardInfo {
+    /**
+     * 姓名
+     */
     private String cardName;
+    /**
+     * 持卡 id
+     */
     private String cardId;
+    /**
+     * 卡号
+     */
     private String cardNo;
-
-    public CardInfo(String cardName, String cardId, String cardNo) {
-        this.cardName = cardName;
-        this.cardId = cardId;
-        this.cardNo = cardNo;
-    }
-
-    public CardInfo(String cardId, String cardNo) {
-        this.cardId = cardId;
-        this.cardNo = cardNo;
-    }
-
-    public String getCardName() {
-        return cardName;
-    }
-
-    public void setCardName(String cardName) {
-        this.cardName = cardName;
-    }
-
-    public String getCardId() {
-        return cardId;
-    }
-
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
-    }
-
-    public String getCardNo() {
-        return cardNo;
-    }
-
-    public void setCardNo(String cardNo) {
-        this.cardNo = cardNo;
-    }
-
-    @Override
-    public String toString() {
-        return "CardInfo{" +
-                "cardName='" + cardName + '\'' +
-                ", cardId='" + cardId + '\'' +
-                ", cardNo='" + cardNo + '\'' +
-                '}';
-    }
+    /**
+     * 身份证号
+     */
+    private String idCard;
 }

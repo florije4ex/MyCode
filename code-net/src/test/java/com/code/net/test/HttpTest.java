@@ -127,6 +127,7 @@ public class HttpTest {
     @Test
     public void testBookTicket() {
         BookCardInfo bookCardInfo = YamlUtil.getBookCardInfo();
+        logger.info("预约配置信息：{}", bookCardInfo);
         // 校验数据
         boolean validation = validation(bookCardInfo);
 
@@ -283,7 +284,8 @@ public class HttpTest {
                 // cardNo_XXXXXX
                 String name = td.child(0).attr("name");
                 String cardId = name.substring(7);
-                bookCardInfo.addCardInfo(new CardInfo(cardName, cardId, cardNo));
+                String idCard = td.child(2).attr("value");
+                bookCardInfo.addCardInfo(new CardInfo(cardName, cardId, cardNo, idCard));
                 bookCardInfo.getCardNoList().remove(cardNo);
                 cardFlag = true;
             }
@@ -322,7 +324,8 @@ public class HttpTest {
         for (CardInfo cardInfo : bookCardInfo.getCardInfoList()) {
             parameter.add("cardNo_" + cardInfo.getCardId(), cardInfo.getCardNo());
             parameter.add("cardType_" + cardInfo.getCardId(), "1");
-            parameter.add("cardId", cardInfo.getCardId() + "#" + cardInfo.getCardNo());
+            parameter.add("userIdCard_" + cardInfo.getCardId(), cardInfo.getIdCard());
+            parameter.add("cardId", cardInfo.getCardId() + "#" + cardInfo.getCardNo() + "#" + cardInfo.getIdCard());
         }
 
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
