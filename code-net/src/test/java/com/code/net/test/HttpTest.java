@@ -118,15 +118,32 @@ public class HttpTest {
 
     public static void main(String[] args) {
         HttpTest httpTest = new HttpTest();
-        httpTest.testBookTicket();
+        httpTest.startBookTicket(null);
     }
 
     /**
-     * 京津冀旅游年卡景区预定 测试
+     * 新版 idea 不能同时运行多个相同的单元测试，改为多个 junit 来传递参数，决定使用哪些配置文件
      */
     @Test
-    public void testBookTicket() {
-        BookCardInfo bookCardInfo = YamlUtil.getBookCardInfo();
+    public void testBook1() {
+        startBookTicket(YamlUtil.LY_CONFIG_FILE);
+    }
+
+    /**
+     * 新版 idea 不能同时运行多个相同的单元测试，改为多个 junit 来传递参数，决定使用哪些配置文件
+     */
+    @Test
+    public void testBook2() {
+        startBookTicket(YamlUtil.LY_CONFIG_FILE2);
+    }
+
+    /**
+     * 启动京津冀旅游年卡景区预约
+     *
+     * @param configFile 指定配置文件
+     */
+    private void startBookTicket(String configFile) {
+        BookCardInfo bookCardInfo = YamlUtil.getBookCardInfo(configFile);
         logger.info("预约配置信息：{}", bookCardInfo);
         // 校验数据
         boolean validation = validation(bookCardInfo);

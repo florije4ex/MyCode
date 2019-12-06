@@ -38,9 +38,9 @@ public class YamlUtil {
      *
      * @param configFile 如果传递了配置文件则加载指定的，未指定则加载默认的文件 jjjlynkBook.yml
      */
-    public static BookCardInfo getBookCardInfo(String... configFile) {
+    public static BookCardInfo getBookCardInfo(String configFile) {
         Yaml yaml = new Yaml(new Constructor(BookCardInfo.class));
-        String file = configFile.length > 0 ? configFile[0] : LY_CONFIG_FILE;
+        String file = configFile != null ? configFile : LY_CONFIG_FILE;
         InputStream inputStream = YamlUtil.class.getResourceAsStream(file);
         BookCardInfo bookCardInfo = yaml.load(inputStream);
 
