@@ -29,6 +29,8 @@ public class YamlUtil {
     // 京津冀旅游年卡预约信息
     public static final String LY_CONFIG_FILE = "/config/jjjlynkBook.yml";
     public static final String LY_CONFIG_FILE2 = "/config/jjjlynkBook2.yml";
+    public static final String LY_CONFIG_FILE3 = "/config/jjjlynkBook3.yml";
+    public static final String LY_CONFIG_FILE4 = "/config/jjjlynkBook4.yml";
     private static final String HOSPITAL_CONFIG_FILE = "/config/hospitalBook.yml";
     private static final String HOSPITAL_PROPERTIES_FILE = "/properties/hospital.properties";
     private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

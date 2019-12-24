@@ -1,5 +1,7 @@
 package com.code.net.test;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.cui.code.net.model.BookCardInfo;
 import com.cui.code.net.model.CardInfo;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -25,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +46,14 @@ import java.util.stream.Collectors;
 public class HttpTest {
     private static final Logger logger = LoggerFactory.getLogger(HttpTest.class);
 
-    private RestTemplate restTemplate = new RestTemplate();
+    private static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+    static {
+        requestFactory.setConnectTimeout(1000);
+        requestFactory.setReadTimeout(5000);
+    }
+
+    private RestTemplate restTemplate = new RestTemplate(requestFactory);
 
     private String url = "https://s.creditcard.ecitic.com/citiccard/lottery-gateway-pay/pointLottery.do";
 
@@ -137,6 +148,16 @@ public class HttpTest {
         startBookTicket(YamlUtil.LY_CONFIG_FILE2);
     }
 
+    @Test
+    public void testBook3() {
+        startBookTicket(YamlUtil.LY_CONFIG_FILE3);
+    }
+
+    @Test
+    public void testBook4() {
+        startBookTicket(YamlUtil.LY_CONFIG_FILE4);
+    }
+
     /**
      * 启动京津冀旅游年卡景区预约
      *
@@ -158,6 +179,7 @@ public class HttpTest {
             try {
                 BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo);
                 if (bookInfo != null) {
+                    System.out.println(bookCardInfo);
                     boolean result = lynkBook(bookInfo);
                     if (result) {
                         System.out.println(count + "：预约成功，退出循环");
