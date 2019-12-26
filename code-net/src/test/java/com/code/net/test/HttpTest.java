@@ -45,10 +45,22 @@ public class HttpTest {
     private static final Logger logger = LoggerFactory.getLogger(HttpTest.class);
 
     private static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    private static final Map<String, String> statusMap = new HashMap<>();
 
     static {
         requestFactory.setConnectTimeout(1000);
         requestFactory.setReadTimeout(5000);
+
+        statusMap.put("1", "预约成功");
+        statusMap.put("2", "预约失败，请重试！");
+        statusMap.put("3", "超预约规定次数");
+        statusMap.put("4", "卡不在允许预约范围内");
+        statusMap.put("5", "卡不在允许预约范围内");
+        statusMap.put("6", "超过总次数，当天景区预约已满");
+        statusMap.put("7", "预约失败，读取预约数量数据失败，请联系管理员");
+        statusMap.put("8", "预约失败，读取预约数量数据失败，请联系管理员");
+        statusMap.put("9", "卡过期");
+        statusMap.put("10", "预约名额不足，请重新选择卡号");
     }
 
     private RestTemplate restTemplate = new RestTemplate(requestFactory);
@@ -169,30 +181,27 @@ public class HttpTest {
         List<CardInfo> cardInfoList = getCardInfo(bookCardInfo);
         bookCardInfo.setCardInfoList(cardInfoList);
 
-        System.out.println("启动时间：" + new Date());
+        logger.info("获取预约人信息后：{}", bookCardInfo);
         int count = 0;
         while (true) {
             if (++count % 100 == 0) {
-                System.out.println("retry count：" + count);
-                System.out.println(new Date());
+                logger.info("retry count：{}", count);
             }
             try {
                 boolean subscribeCalendarId = getSubscribeCalendarId(bookCardInfo);
                 if (subscribeCalendarId) {
-                    System.out.println(bookCardInfo);
+                    logger.info("bookCardInfo:{}", bookCardInfo);
                     boolean result = lynkBook(bookCardInfo);
                     if (result) {
-                        System.out.println(count + "：预约成功");
-                        Date date = new Date();
-                        System.out.println("预约成功时间：" + date);
+                        logger.info("第{}次预约成功", count);
                         if (bookCardInfo.isEmailNotice()) {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
                             String subject = MessageFormat.format("景区预约成功——{0}", name);
                             String content = MessageFormat.format("<h3>预约信息：</h3><ol><li>预约卡号：{0}</li><li>预约景区：{1}</li>" +
-                                            "<li>预约日期：{2}</li><li>预约成功时间：{3}</li></ol>" +
+                                            "<li>预约日期：{2}</li><li>邮件发送时间：{3}</li></ol>" +
                                             "<h4>其他信息：</h4><p>预约详情：{4}</p>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
-                                    bookCardInfo.getBookDate(), date, JSON.toJSONString(bookCardInfo));
+                                    bookCardInfo.getBookDate(), new Date(), JSON.toJSONString(bookCardInfo));
                             MailUtil.sendMailByConfig(subject, content);
                         }
                         if (bookCardInfo.getCardInfoTempList().isEmpty()) {
@@ -221,7 +230,7 @@ public class HttpTest {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                    logger.error("线程异常", e);
                 }
             }
         }
@@ -257,7 +266,7 @@ public class HttpTest {
             throw new RuntimeException("预约截止时间(" + bookCardInfo.getEndTime() + ")不能比当前时间(" + now + ")还早，" +
                     "建议：预约截止时间设置为预约日期前几个小时并且不应超过预约日期当天的24点，请仔细考虑后再设置。");
         } else if (bookCardInfo.getEndTime().after(maxEndDate)) {
-            System.out.println("预约截止时间（" + bookCardInfo.getEndTime() + "）已超过最大截止时间点（" + maxEndDate + "）,已修正。");
+            logger.info("预约截止时间({})已超过最大截止时间点,已自动修正为最大截止时间点({})。", bookCardInfo.getEndTime(), maxEndDate);
             bookCardInfo.setEndTime(maxEndDate);
         }
 
@@ -344,7 +353,7 @@ public class HttpTest {
                 "window.open ('/ITS/itsApp/loginAuthorization.jsp','_top')\n" +
                 "</script>\n" +
                 "</html>\n")) {
-            System.out.println("微信授权已失效，请重新抓取sessionId");
+            logger.error("微信授权已失效，请重新抓取sessionId");
             return null;
         }
         Document document = Jsoup.parse(responseString);
@@ -356,15 +365,6 @@ public class HttpTest {
      * 京津冀旅游年卡景区预约提交
      */
     private boolean lynkBook(BookCardInfo bookCardInfo) {
-        Map<String, String> statusMap = new HashMap<>();
-        statusMap.put("1", "预约成功");
-        statusMap.put("2", "预约失败，请重试！");
-        statusMap.put("3", "超预约规定次数");
-        statusMap.put("4", "卡不在允许预约范围内");
-        statusMap.put("5", "卡不在允许预约范围内");
-        statusMap.put("6", "超过总次数，当天景区预约已满");
-        statusMap.put("10", "预约名额不足，请重新选择卡号");
-
         String bookURL = "http://zglynk.com/ITS/itsApp/saveUserSubscribeInfo.action";
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -398,12 +398,13 @@ public class HttpTest {
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 String status = jsonObject.getString("status");
                 if ("1".equals(status)) {
-                    System.out.println(responseBody);
+                    logger.info("responseBody:{}", responseBody);
+                    // 预约成功后立即查询预约列表，可能查不到数据，考虑换成异步线程，等待一分钟然后再去查询并发送邮件
                     setSuccessInfo(bookCardInfo);
                     return true;
                 } else {
-                    System.out.println("fail：" + ++count + "——" + responseBody);
-                    System.out.println(statusMap.getOrDefault(status, "预约失败，请重试！"));
+                    logger.info("fail:{}——{}", ++count, responseBody);
+                    logger.info("fail reason:{}", statusMap.getOrDefault(status, "预约失败，请重试！"));
                     // 部分提交：由于不知道票数余量有多少张，所以逐张提交
                     if ("10".equals(status)) {
                         CardInfo firstSubmitCardInfo = bookCardInfo.getCardInfoList().remove(0);
@@ -414,8 +415,7 @@ public class HttpTest {
                     Thread.sleep(100);
                 }
             } catch (Exception e) {
-                count++;
-                e.printStackTrace();
+                logger.error("{}本次预约失败", ++count, e);
             }
         }
         return false;
@@ -446,7 +446,7 @@ public class HttpTest {
         HttpEntity<Object> request = new HttpEntity<>(parameter, httpHeaders);
 
         String responseBody = restTemplate.postForObject(loginURL, request, String.class);
-        System.out.println(responseBody);
+        logger.info("登陆结果:{}", responseBody);
     }
 
     /**
