@@ -74,9 +74,5 @@ public class BookCardInfo {
      * 预约成功后的相关信息
      */
     private List<SuccessInfo> successInfoList = new ArrayList<>();
-
-    public void addCardInfo(CardInfo cardInfo) {
-        this.cardInfoList.add(cardInfo);
-    }
 }
 

@@ -166,6 +166,8 @@ public class HttpTest {
         logger.info("预约配置信息：{}", bookCardInfo);
         // 校验数据
         boolean validation = validation(bookCardInfo);
+        List<CardInfo> cardInfoList = getCardInfo(bookCardInfo);
+        bookCardInfo.setCardInfoList(cardInfoList);
 
         System.out.println("启动时间：" + new Date());
         int count = 0;
@@ -175,10 +177,10 @@ public class HttpTest {
                 System.out.println(new Date());
             }
             try {
-                BookCardInfo bookInfo = getSubscribeCalendarId(bookCardInfo);
-                if (bookInfo != null) {
+                boolean subscribeCalendarId = getSubscribeCalendarId(bookCardInfo);
+                if (subscribeCalendarId) {
                     System.out.println(bookCardInfo);
-                    boolean result = lynkBook(bookInfo);
+                    boolean result = lynkBook(bookCardInfo);
                     if (result) {
                         System.out.println(count + "：预约成功，退出循环");
                         Date date = new Date();
@@ -257,12 +259,69 @@ public class HttpTest {
     }
 
     /**
+     * 获取预约人相关信息
+     */
+    private List<CardInfo> getCardInfo(BookCardInfo bookCardInfo) {
+        Elements tables = getTables(bookCardInfo);
+
+        //解析cardId
+        Element cardTable = tables.get(1);
+        Elements cardNoTrs = cardTable.getElementsByTag("tr");
+        List<CardInfo> cardInfoList = new ArrayList<>();
+        for (Element cardNoTr : cardNoTrs) {
+            String cardName = cardNoTr.getElementsByTag("td").get(0).getElementsByTag("span").get(0).text().trim();
+            Element td = cardNoTr.getElementsByTag("td").get(1);
+            String cardNo = td.text().trim();
+            if (bookCardInfo.getCardNoList().contains(cardNo)) {
+                // cardNo_XXXXXX
+                String name = td.child(0).attr("name");
+                String cardId = name.substring(7);
+                String idCard = td.child(2).attr("value");
+                CardInfo cardInfo = new CardInfo(cardName, cardId, cardNo, idCard);
+                cardInfoList.add(cardInfo);
+                bookCardInfo.getCardNoList().remove(cardNo);
+            }
+        }
+        if (cardInfoList.isEmpty()) {
+            throw new RuntimeException("未获取到配置文件中的任何预约卡信息：" + bookCardInfo.getCardNoList());
+        }
+        if (!bookCardInfo.getCardNoList().isEmpty()) {
+            logger.warn("未获取到配置文件中的部分预约卡信息：{}", bookCardInfo.getCardNoList());
+        }
+        return cardInfoList;
+    }
+
+    /**
      * 获取可预订日期的id
      *
      * @param bookCardInfo 预订卡信息
      * @return 日期的id
      */
-    private BookCardInfo getSubscribeCalendarId(BookCardInfo bookCardInfo) {
+    private boolean getSubscribeCalendarId(BookCardInfo bookCardInfo) {
+        Elements tables = getTables(bookCardInfo);
+        // 解析日期id
+        Element table = tables.get(0);
+        Elements trs = table.getElementsByTag("tr");
+        for (Element tr : trs) {
+            Elements tds = tr.getElementsByTag("td");
+            Element date = tds.get(0);
+            // 多个日期只要有任何一个满足即可预约
+            if (bookCardInfo.getBookDateList().contains(date.text())) {
+                Element bookTd = tds.get(2);
+                String bookText = bookTd.text();
+                if (bookText.startsWith("可预约")) {
+                    Elements input = bookTd.getElementsByTag("input");
+                    String subscribeCalendarId = input.attr("value");
+                    bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
+                    bookCardInfo.setBookDate(date.text());
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Elements getTables(BookCardInfo bookCardInfo) {
         String getSubscribeURL = "http://zglynk.com/ITS/itsApp/goSubscribe.action?subscribeId=" + bookCardInfo.getSubscribeId();
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -284,50 +343,7 @@ public class HttpTest {
         }
         Document document = Jsoup.parse(responseString);
         Elements tables = document.getElementsByClass("ticket-info mart20");
-        // 解析日期id
-        Element table = tables.get(0);
-        Elements trs = table.getElementsByTag("tr");
-        boolean dateFlag = false;
-        for (Element tr : trs) {
-            Elements tds = tr.getElementsByTag("td");
-            Element date = tds.get(0);
-            // 多个日期只要有任何一个满足即可预约
-            if (bookCardInfo.getBookDateList().contains(date.text())) {
-                Element bookTd = tds.get(2);
-                String bookText = bookTd.text();
-                if (bookText.startsWith("可预约")) {
-                    Elements input = bookTd.getElementsByTag("input");
-                    String subscribeCalendarId = input.attr("value");
-                    bookCardInfo.setSubscribeCalendarId(subscribeCalendarId);
-                    bookCardInfo.setBookDate(date.text());
-                    dateFlag = true;
-                    break;
-                }
-            }
-        }
-        if (!dateFlag) {
-            return null;
-        }
-
-        //解析cardId
-        Element cardTable = tables.get(1);
-        Elements cardNoTrs = cardTable.getElementsByTag("tr");
-        boolean cardFlag = false;
-        for (Element cardNoTr : cardNoTrs) {
-            String cardName = cardNoTr.getElementsByTag("td").get(0).getElementsByTag("span").get(0).text().trim();
-            Element td = cardNoTr.getElementsByTag("td").get(1);
-            String cardNo = td.text().trim();
-            if (bookCardInfo.getCardNoList().contains(cardNo)) {
-                // cardNo_XXXXXX
-                String name = td.child(0).attr("name");
-                String cardId = name.substring(7);
-                String idCard = td.child(2).attr("value");
-                bookCardInfo.addCardInfo(new CardInfo(cardName, cardId, cardNo, idCard));
-                bookCardInfo.getCardNoList().remove(cardNo);
-                cardFlag = true;
-            }
-        }
-        return cardFlag ? bookCardInfo : null;
+        return tables;
     }
 
     /**
