@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.cui.code.net.model.BookCardInfo;
 import com.cui.code.net.model.CardInfo;
 import com.cui.code.net.model.SubscribeIdEnum;
+import com.cui.code.net.model.SuccessInfo;
 import com.cui.code.net.util.MailUtil;
 import com.cui.code.net.util.YamlUtil;
 import org.jsoup.Jsoup;
@@ -28,10 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -189,10 +187,10 @@ public class HttpTest {
                             String name = SubscribeIdEnum.getSubscribeIdEnumById(bookCardInfo.getSubscribeId()).name();
                             String subject = MessageFormat.format("景区预约成功——{0}", name);
                             String content = MessageFormat.format("<h3>预约信息：</h3><ol><li>预约卡号：{0}</li><li>预约景区：{1}</li>" +
-                                            "<li>预约日期：{2}</li><li>预约成功id：{3}</li><li>预约成功时间：{4}</li></ol>" +
-                                            "<h4>其他信息：</h4><p>预约详情：{5}</p>",
+                                            "<li>预约日期：{2}</li><li>预约成功时间：{3}</li></ol>" +
+                                            "<h4>其他信息：</h4><p>预约详情：{4}</p>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
-                                    bookCardInfo.getBookDate(), "暂时隐藏", date, JSON.toJSONString(bookCardInfo));
+                                    bookCardInfo.getBookDate(), date, JSON.toJSONString(bookCardInfo));
                             MailUtil.sendMailByConfig(subject, content);
                         }
                         return;
@@ -343,6 +341,7 @@ public class HttpTest {
         statusMap.put("4", "卡不在允许预约范围内");
         statusMap.put("5", "卡不在允许预约范围内");
         statusMap.put("6", "超过总次数，当天景区预约已满");
+        statusMap.put("10", "预约名额不足，请重新选择卡号");
 
         String bookURL = "http://zglynk.com/ITS/itsApp/saveUserSubscribeInfo.action";
 
@@ -377,13 +376,15 @@ public class HttpTest {
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
                 if ("1".equals(jsonObject.getString("status"))) {
                     System.out.println(responseBody);
+                    setSuccessInfo(bookCardInfo);
                     return true;
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
                     System.out.println(statusMap.getOrDefault(jsonObject.getString("status"), "预约失败，请重试！"));
+                    Thread.sleep(100);
                 }
-                Thread.sleep(100);
             } catch (Exception e) {
+                count++;
                 e.printStackTrace();
             }
         }
@@ -416,6 +417,46 @@ public class HttpTest {
 
         String responseBody = restTemplate.postForObject(loginURL, request, String.class);
         System.out.println(responseBody);
+    }
+
+    /**
+     * 获取预约成功后的id 信息
+     */
+    private void setSuccessInfo(BookCardInfo bookCardInfo) {
+        try {
+            List<String> idList = getMySubscribeIdList(bookCardInfo);
+            List<SuccessInfo> successInfoList = createSuccessInfoList(bookCardInfo.getJSESSIONID(), idList);
+            bookCardInfo.setSuccessInfoList(successInfoList);
+        } catch (Exception e) {
+            logger.error("获取预约成功的 id 信息出现异常", e);
+        }
+    }
+
+    /**
+     * 将成功的id 和姓名、卡号关联
+     */
+    private List<SuccessInfo> createSuccessInfoList(String JSESSIONID, List<String> idList) {
+        String goViewUserSubscribeURL = "http://zglynk.com/ITS/itsApp/goViewUserSubscribe.action?id=";
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + JSESSIONID);
+        HttpEntity request = new HttpEntity(httpHeaders);
+
+        List<SuccessInfo> successInfoList = new ArrayList<>();
+        for (String id : idList) {
+            String idURL = goViewUserSubscribeURL + id;
+            String responseString = restTemplate.postForObject(idURL, request, String.class);
+            Document document = Jsoup.parse(responseString);
+            Elements tables = document.getElementsByClass("ticket-info mart20");
+            Element table = tables.get(0);
+            Elements trs = table.getElementsByTag("tr");
+            for (Element tr : trs) {
+                Elements tds = tr.getElementsByTag("td");
+                String name = tds.get(0).text();
+                String cardNo = tds.get(1).text();
+                successInfoList.add(new SuccessInfo(id, name, cardNo));
+            }
+        }
+        return successInfoList;
     }
 
     /**
@@ -477,6 +518,35 @@ public class HttpTest {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取已预订景区的id 列表
+     */
+    private List<String> getMySubscribeIdList(BookCardInfo bookCardInfo) {
+        String mySubscribeListURL = "http://zglynk.com/ITS/itsApp/goMySubscribeList.action";
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + bookCardInfo.getJSESSIONID());
+        HttpEntity request = new HttpEntity(httpHeaders);
+
+        String responseString = restTemplate.postForObject(mySubscribeListURL, request, String.class);
+        Document document = Jsoup.parse(responseString);
+
+        List<String> idList = new ArrayList<>();
+        Element ul = document.select("ul.jq-yu-list.p-top30").first();
+        Elements lis = ul.getElementsByTag("li");
+        for (Element li : lis) {
+            Element aNode = li.getElementsByTag("a").first();
+            String ticketTitle = aNode.select("p.font34").text();
+            String bookStatusDescription = aNode.select("p.mart30").text();
+            if (ticketTitle.contains(bookCardInfo.getSubscribeName()) && bookStatusDescription.contains(bookCardInfo.getBookDate())
+                    && bookStatusDescription.contains("预约成功")) {
+                String href = aNode.attr("href");
+                String bookId = href.substring("goViewUserSubscribe.action?id=".length());
+                idList.add(bookId);
+            }
+        }
+        return idList;
     }
 
     /**
