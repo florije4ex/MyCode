@@ -182,7 +182,7 @@ public class HttpTest {
                     System.out.println(bookCardInfo);
                     boolean result = lynkBook(bookCardInfo);
                     if (result) {
-                        System.out.println(count + "：预约成功，退出循环");
+                        System.out.println(count + "：预约成功");
                         Date date = new Date();
                         System.out.println("预约成功时间：" + date);
                         if (bookCardInfo.isEmailNotice()) {
@@ -195,7 +195,13 @@ public class HttpTest {
                                     bookCardInfo.getBookDate(), date, JSON.toJSONString(bookCardInfo));
                             MailUtil.sendMailByConfig(subject, content);
                         }
-                        return;
+                        if (bookCardInfo.getCardInfoTempList().isEmpty()) {
+                            return;
+                        } else {
+                            bookCardInfo.setCardInfoList(bookCardInfo.getCardInfoTempList());
+                            bookCardInfo.setCardInfoTempList(Collections.emptyList());
+                            continue;
+                        }
                     }
                 }
                 if (System.currentTimeMillis() >= bookCardInfo.getEndTime().getTime()) {
@@ -390,13 +396,21 @@ public class HttpTest {
                 // 成功响应：{"status":"1","message":"成功"}
                 String responseBody = restTemplate.postForObject(bookURL, request, String.class);
                 JSONObject jsonObject = JSONObject.parseObject(responseBody);
-                if ("1".equals(jsonObject.getString("status"))) {
+                String status = jsonObject.getString("status");
+                if ("1".equals(status)) {
                     System.out.println(responseBody);
                     setSuccessInfo(bookCardInfo);
                     return true;
                 } else {
                     System.out.println("fail：" + ++count + "——" + responseBody);
-                    System.out.println(statusMap.getOrDefault(jsonObject.getString("status"), "预约失败，请重试！"));
+                    System.out.println(statusMap.getOrDefault(status, "预约失败，请重试！"));
+                    // 部分提交：由于不知道票数余量有多少张，所以逐张提交
+                    if ("10".equals(status)) {
+                        CardInfo firstSubmitCardInfo = bookCardInfo.getCardInfoList().remove(0);
+                        bookCardInfo.setCardInfoTempList(bookCardInfo.getCardInfoList());
+                        bookCardInfo.setCardInfoList(Collections.singletonList(firstSubmitCardInfo));
+                        return false;
+                    }
                     Thread.sleep(100);
                 }
             } catch (Exception e) {
