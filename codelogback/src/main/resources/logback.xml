@@ -1,0 +1,29 @@
+<configuration debug="true">
+
+    <!--输出日志到当前系统用户目录下-->
+    <property name="LOG_HOME" value="${user.home}/logs/logback"/>
+
+    <!--这个是默认的控制台输出配置，如果没有自定义任何 appender 配置，默认就是这个格式-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!--encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default-->
+        <encoder>
+            <pattern>
+                %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_HOME}/business.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{10} [%file:%line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
