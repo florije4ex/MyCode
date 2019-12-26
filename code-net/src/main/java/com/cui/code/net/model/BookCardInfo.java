@@ -67,9 +67,13 @@ public class BookCardInfo {
      */
     private List<String> cardNoList = new ArrayList<>();
     /**
-     * 预订人的卡片列表
+     * 预订人的卡片列表：本次将要提交的人员信息
      */
     private List<CardInfo> cardInfoList = new ArrayList<>();
+    /**
+     * 预订人的卡片列表：当预约票数不足时，临时存储，逐张提交cardInfoList中的人员
+     */
+    private List<CardInfo> cardInfoTempList = new ArrayList<>();
     /**
      * 预约成功后的相关信息
      */
