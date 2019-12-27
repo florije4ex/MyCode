@@ -2,7 +2,9 @@ package com.cui.spider.test;
 
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
 import com.cui.code.spider.pageprocessor.*;
+import com.cui.code.spider.pageprocessor.lynk.BookInfoPageProcessor;
 import com.cui.code.spider.pipeline.*;
+import com.cui.code.spider.pipeline.lynk.BookInfoPipeline;
 import com.cui.code.spider.service.DoubanTopicService;
 import org.junit.Test;
 import us.codecraft.webmagic.Spider;
@@ -185,4 +187,37 @@ public class SpiderTest {
                 .addPipeline(new HospitalList114Pipeline())
                 .thread(3).run();
     }
+
+    /**
+     * 京津冀旅游年卡预约详情信息
+     */
+    @Test
+    public void testLynkBookInfoDetail() {
+        int pageSize = 10;
+        int startId = 1;
+        int maxId = 100;
+        String[] urls = new String[pageSize];
+
+        while (true) {
+            String urlPrefix = "http://zglynk.com/ITS/itsApp/goViewUserSubscribe.action?id=";
+            for (int i = 0; i < pageSize; i++) {
+                urls[i] = urlPrefix + startId;
+                startId++;
+            }
+
+            try {
+                Spider spider = Spider.create(new BookInfoPageProcessor());
+                spider.addUrl(urls)
+                        .addPipeline(new BookInfoPipeline())
+                        .thread(1).run();
+                if (startId >= maxId) {
+                    break;
+                }
+            } catch (Exception e) {
+                System.out.println(startId);
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

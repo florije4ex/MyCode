@@ -62,3 +62,24 @@ CREATE TABLE `hospital` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='114平台上的医院';
 
+
+———————————————————————————————分隔线———————————————————————————————————————
+
+uft8mb4 编码的问题，需要修改 mysql 的配置文件
+
+lynk库：
+
+CREATE TABLE `book_info` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 id',
+  `book_id` int(10) unsigned NOT NULL COMMENT '预约 id',
+  `book_name` varchar(32) NOT NULL DEFAULT '' COMMENT '景区名称',
+  `book_date` date NOT NULL COMMENT '预约日期',
+  `book_status` varchar(32) NOT NULL DEFAULT '' COMMENT '预约状态',
+  `name` varchar(16) NOT NULL DEFAULT '' COMMENT '预约人姓名',
+  `card_no` varchar(32) NOT NULL DEFAULT '' COMMENT '预约人卡号',
+  `card_type` varchar(16) NOT NULL DEFAULT '' COMMENT '卡类型',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='京津冀旅游一卡通已预约的景区人员信息';
+

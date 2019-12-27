@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cui.code.spider.dal.dao.lynk.BookInfoDAO">
+
+    <resultMap id="BookInfoDO" type="com.cui.code.spider.dal.dataobject.lynk.BookInfoDO">
+        <id column="id" property="id"/>
+        <result column="book_id" property="bookId"/>
+        <result column="book_name" property="bookName"/>
+        <result column="book_date" property="bookDate"/>
+        <result column="book_status" property="bookStatus"/>
+        <result column="name" property="name"/>
+        <result column="card_no" property="cardNo"/>
+        <result column="card_type" property="cardType"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 批量保存 -->
+    <insert id="saveBatchBookInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `book_info`(book_id,book_name,book_date,book_status,name,card_no,card_type)
+        VALUES
+        <foreach collection="bookInfoDOList" item="bookInfo" separator=",">
+            (#{bookInfo.bookId},#{bookInfo.bookName},#{bookInfo.bookDate},#{bookInfo.bookStatus},
+            #{bookInfo.name}, #{bookInfo.cardNo}, #{bookInfo.cardType})
+        </foreach>
+    </insert>
+
+
+</mapper>
