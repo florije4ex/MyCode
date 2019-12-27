@@ -46,8 +46,9 @@ public class BookInfoPageProcessor implements PageProcessor {
 
         String bookName = page.getHtml().xpath("p[@class='mart30']").nodes().get(0).xpath("p/text()").toString().trim();
         String bookDate = page.getHtml().xpath("p[@class='mart30']").nodes().get(3).xpath("p/text()").toString().trim().replace("预约时间：", "");
-        String bookStatus = page.getHtml().xpath("p[@class='mart30']").nodes().get(4).xpath("p/html()").toString().replace("预约状态： \n", "");
-        bookStatus = bookStatus.trim().replace("<!--", "").replace("-->", "");
+        String bookStatus = page.getHtml().xpath("p[@class='mart30']").nodes().get(4).xpath("p/html()").toString()
+                .trim().replace("预约状态：", "").trim()
+                .replace("<!--", "").replace("-->", "");
 
         List<BookInfoDO> bookInfoDOList = new ArrayList<>();
         for (Selectable book : cardTableRows) {
