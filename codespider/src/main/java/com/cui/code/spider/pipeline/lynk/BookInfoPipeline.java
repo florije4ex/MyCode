@@ -31,7 +31,7 @@ public class BookInfoPipeline implements Pipeline {
         SqlSession sqlSession = LynkDBConfig.sqlSessionFactory.openSession();
         BookInfoDAO bookInfoDAO = sqlSession.getMapper(BookInfoDAO.class);
         int rows = bookInfoDAO.saveBatchBookInfo(bookInfoDOList);
-        System.out.println(rows);
+        log.info("success rows:{}", rows);
         sqlSession.commit();
         sqlSession.close();
     }

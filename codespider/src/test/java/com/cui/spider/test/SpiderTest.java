@@ -6,6 +6,7 @@ import com.cui.code.spider.pageprocessor.lynk.BookInfoPageProcessor;
 import com.cui.code.spider.pipeline.*;
 import com.cui.code.spider.pipeline.lynk.BookInfoPipeline;
 import com.cui.code.spider.service.DoubanTopicService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
@@ -27,6 +28,7 @@ import java.util.List;
  * <p>
  * Created by cuishixiang on 2017-10-24.
  */
+@Slf4j
 public class SpiderTest {
 
     /**
@@ -214,8 +216,7 @@ public class SpiderTest {
                     break;
                 }
             } catch (Exception e) {
-                System.out.println(startId);
-                e.printStackTrace();
+                log.error("error id:{}", startId, e);
             }
         }
     }
