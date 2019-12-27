@@ -75,7 +75,7 @@ CREATE TABLE `book_info` (
   `book_name` varchar(32) NOT NULL DEFAULT '' COMMENT '景区名称',
   `book_date` date NOT NULL COMMENT '预约日期',
   `book_status` varchar(32) NOT NULL DEFAULT '' COMMENT '预约状态',
-  `name` varchar(16) NOT NULL DEFAULT '' COMMENT '预约人姓名',
+  `name` varchar(32) NOT NULL DEFAULT '' COMMENT '预约人姓名',
   `card_no` varchar(32) NOT NULL DEFAULT '' COMMENT '预约人卡号',
   `card_type` varchar(16) NOT NULL DEFAULT '' COMMENT '卡类型',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

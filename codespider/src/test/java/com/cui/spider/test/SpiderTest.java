@@ -211,7 +211,7 @@ public class SpiderTest {
                 Spider spider = Spider.create(new BookInfoPageProcessor());
                 spider.addUrl(urls)
                         .addPipeline(new BookInfoPipeline())
-                        .thread(1).run();
+                        .thread(2).run();
                 if (startId >= maxId) {
                     break;
                 }
