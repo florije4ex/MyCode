@@ -38,7 +38,6 @@ public class BookInfoPageProcessor implements PageProcessor {
     @Override
     public void process(Page page) {
         String currentPageURL = page.getUrl().toString();
-        log.info("fetch page url :{}", currentPageURL);
         int lastIndexOf = currentPageURL.lastIndexOf("=");
         String bookIdString = currentPageURL.substring(lastIndexOf + 1);
 

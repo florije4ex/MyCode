@@ -83,3 +83,5 @@ CREATE TABLE `book_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='京津冀旅游一卡通已预约的景区人员信息';
 
+ALTER TABLE `book_info` ADD UNIQUE INDEX `uniq_bookid_cardno` (`book_id`, `card_no`);
+
