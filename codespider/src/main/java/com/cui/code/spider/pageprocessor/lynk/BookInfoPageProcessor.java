@@ -30,7 +30,7 @@ public class BookInfoPageProcessor implements PageProcessor {
 
     private static final String JSESSIONID = "XXXXXXXXXXXXXX";
 
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(2000)
+    private Site site = Site.me().setRetryTimes(3).setSleepTime(1800)
             .addHeader("Cookie", "JSESSIONID=" + JSESSIONID)
             .setCharset(StandardCharsets.UTF_8.name())
             .setTimeOut(20000);
@@ -69,6 +69,8 @@ public class BookInfoPageProcessor implements PageProcessor {
 
             bookInfoDOList.add(bookInfoDO);
         }
+
+        page.putField("bookId", bookIdString);
         page.putField("bookInfoDOList", bookInfoDOList);
     }
 

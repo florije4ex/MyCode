@@ -195,9 +195,9 @@ public class SpiderTest {
      */
     @Test
     public void testLynkBookInfoDetail() {
-        int pageSize = 10;
-        int startId = 1;
-        int maxId = 100;
+        int pageSize = 100;
+        int startId = 274301;
+        int maxId = 274500;
         String[] urls = new String[pageSize];
 
         while (true) {

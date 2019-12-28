@@ -23,15 +23,16 @@ public class BookInfoPipeline implements Pipeline {
     @Override
     public void process(ResultItems resultItems, Task task) {
         List<BookInfoDO> bookInfoDOList = resultItems.get("bookInfoDOList");
+        String bookId = resultItems.get("bookId");
         if (bookInfoDOList.isEmpty()) {
-            log.warn("没有任何数据");
+            log.warn("bookId:{} 没有任何数据", bookId);
             return;
         }
 
         SqlSession sqlSession = LynkDBConfig.sqlSessionFactory.openSession();
         BookInfoDAO bookInfoDAO = sqlSession.getMapper(BookInfoDAO.class);
         int rows = bookInfoDAO.saveBatchBookInfo(bookInfoDOList);
-        log.info("success rows:{}", rows);
+        log.info("bookId:{} save rows:{}", bookId, rows);
         sqlSession.commit();
         sqlSession.close();
     }
