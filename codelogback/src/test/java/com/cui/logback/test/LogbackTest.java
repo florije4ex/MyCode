@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Logback基础测试
  *
@@ -79,5 +81,33 @@ public class LogbackTest {
             e.printStackTrace();
             logger.error("logger error：", e);
         }
+    }
+
+    /**
+     * 50 个线程，打印固定长度日志，总共 100万行日志，
+     * 性能测试：带 %file:%line 参数的耗时和去除此参数的耗时
+     * 带：19104、18502    106MB
+     * 不带：8927、8893    86MB
+     * 结论：性能差异很大，所以对于性能要求高的系统，不要带此参数
+     */
+    @Test
+    public void testFileLinePerformance() throws InterruptedException {
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        int threadCount = 50;
+        final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < threadCount; i++) {
+            new Thread(() -> {
+                for (int j = 0; j < 20000; j++) {
+                    logger.info("test performance……");
+                }
+                countDownLatch.countDown();
+            }).start();
+        }
+        countDownLatch.await();
+        long endTime = System.currentTimeMillis();
+        long costTime = endTime - startTime;
+        logger.info("logback with param: [%file:%line] cost time:{}", costTime);
+        System.out.println(costTime);
     }
 }
