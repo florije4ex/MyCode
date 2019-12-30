@@ -1,0 +1,55 @@
+<!--status用来指定log4j本身的打印日志的级别-->
+<!--monitorinterval用于指定log4j自动重新配置的监测间隔时间，单位是s,最小是5s.-->
+<Configuration status="debug">
+
+    <properties>
+        <!--输出日志到当前系统用户目录下-->
+        <property name="LOG_HOME">${sys:user.home}/logs/log</property>
+    </properties>
+
+    <Appenders>
+        <!--常见的有三种子节点:Console、RollingFile、File-->
+
+        <!--缺省时默认配置-->
+        <!--target:SYSTEM_OUT 或 SYSTEM_ERR,一般只设置默认:SYSTEM_OUT.-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <File name="FILE" fileName="${LOG_HOME}/business2.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{10} [%file:%line] %msg%n"/>
+        </File>
+
+        <!--指定当发生Rolling时，文件的转移和重命名规则-->
+        <RollingRandomAccessFile name="RollingRandomAccessFile" fileName="${LOG_HOME}/business.log"
+                                 filePattern="${LOG_HOME}/business-%d{yyyyMMdd}.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{10} %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy>1</TimeBasedTriggeringPolicy>
+            </Policies>
+            <!--指定最多保存的文件个数-->
+            <DefaultRolloverStrategy>30</DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+        <Async name="AsyncAppender">
+            <AppenderRef ref="RollingRandomAccessFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!--root默认是error-->
+        <Root level="debug">
+            <!--<AppenderRef ref="Console"/>-->
+            <!--<AppenderRef ref="FILE"/>-->
+            <!--<AppenderRef ref="RollingRandomAccessFile"/>-->
+            <AppenderRef ref="AsyncAppender"/>
+        </Root>
+
+        <!--log4j2其实有两个输出异步日志的方式:AsyncLogger和AsyncAppend-->
+        <!--<AsyncLogger name="com.cui" level="debug" addtivity="false">-->
+        <!--    <AppenderRef ref="RollingRandomAccessFile"/>-->
+        <!--</AsyncLogger>-->
+
+
+    </Loggers>
+</Configuration>
