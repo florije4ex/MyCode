@@ -89,16 +89,23 @@ public class LogbackTest {
      * 带：19104、18502    106MB
      * 不带：8927、8893    86MB
      * 结论：性能差异很大，所以对于性能要求高的系统，不要带此参数
+     * <p>
+     * 异步日志测试：主线程结束后，队列中的最后一些数据就丢失了。
+     * threadCount=50，queueSize=256 时 costTime：15319、24471、20244   看来效率还没有同步的高啊，可能参数不合适或者应用场景不合适。
+     * threadCount=50，queueSize=512 时 costTime：17728、16697、18043
+     * threadCount=100，queueSize=256 时 costTime：19412
+     * threadCount=100，queueSize=512 时 costTime：17493
+     * threadCount=100，queueSize=1024 时 costTime：19881
      */
     @Test
-    public void testFileLinePerformance() throws InterruptedException {
+    public void testPerformance() throws InterruptedException {
         Logger logger = LoggerFactory.getLogger(this.getClass());
-        int threadCount = 50;
+        int threadCount = 100;
         final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < threadCount; i++) {
             new Thread(() -> {
-                for (int j = 0; j < 20000; j++) {
+                for (int j = 0; j < 10000; j++) {
                     logger.info("test performance……");
                 }
                 countDownLatch.countDown();

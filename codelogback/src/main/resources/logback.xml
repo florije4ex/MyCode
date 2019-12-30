@@ -43,9 +43,19 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <!--异步日志输出时的阻塞队列，默认大小是 256，如果业务日志量太大，可以根据需要调整-->
+        <queueSize>1024</queueSize>
+        <!--默认当队列容量剩余 20%的空间时，会丢弃TRACE, DEBUG and INFO级别的日志，只保留WARN and ERROR的事件，如果想要不丢弃任何日志，设置为 0-->
+        <discardingThreshold>0</discardingThreshold>
+        <!--真实的输出目的地，appender-ref 只能写一个-->
+        <appender-ref ref="ROLLING-FILE"/>
+    </appender>
+
     <root level="debug">
         <!--<appender-ref ref="STDOUT"/>-->
         <!--<appender-ref ref="FILE"/>-->
-        <appender-ref ref="ROLLING-FILE"/>
+        <!--<appender-ref ref="ROLLING-FILE"/>-->
+        <appender-ref ref="ASYNC"/>
     </root>
 </configuration>
