@@ -20,7 +20,7 @@
         <module>codetomcat</module>
         <module>codezookeeper</module>
         <module>codeshiro</module>
-        <module>codelogback</module>
+        <module>code-log</module>
         <module>codemongo</module>
         <module>code-netty</module>
         <module>code-net</module>
