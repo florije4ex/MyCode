@@ -26,4 +26,13 @@ public interface DoubanGroupDAO {
      * @return
      */
     int updateOwner(DoubanGroupDO doubanGroupDO);
+
+    /**
+     * 根据 id 分页查询小组数据
+     *
+     * @param id       小组 id
+     * @param pageSize
+     * @return
+     */
+    List<DoubanGroupDO> pageQueryById(@Param("id") Integer id, @Param("pageSize") int pageSize);
 }

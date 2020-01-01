@@ -1,10 +1,12 @@
 package com.cui.spider.test;
 
+import com.cui.code.spider.dal.dataobject.DoubanGroupDO;
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
 import com.cui.code.spider.pageprocessor.*;
 import com.cui.code.spider.pageprocessor.lynk.BookInfoPageProcessor;
 import com.cui.code.spider.pipeline.*;
 import com.cui.code.spider.pipeline.lynk.BookInfoPipeline;
+import com.cui.code.spider.service.DoubanGroupService;
 import com.cui.code.spider.service.DoubanTopicService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -151,6 +153,38 @@ public class SpiderTest {
             } catch (Exception e) {
                 System.out.println(lastId);
                 e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 更新豆瓣小组组长信息
+     */
+    @Test
+    public void testUpdateDoubanGroupOwner() {
+        int pageSize = 20;
+        int lastId = 0;
+        DoubanGroupService doubanGroupService = new DoubanGroupService();
+
+        String groupURL = "https://www.douban.com/group/";
+        while (true) {
+            List<DoubanGroupDO> doubanGroupDOS = doubanGroupService.pageQueryById(lastId, pageSize);
+            String[] urls = new String[doubanGroupDOS.size()];
+            for (int i = 0; i < doubanGroupDOS.size(); i++) {
+                urls[i] = groupURL + doubanGroupDOS.get(i).getCode();
+            }
+
+            try {
+                Spider spider = Spider.create(new DoubanGroupUpdatePageProcessor());
+                spider.addUrl(urls)
+                        .addPipeline(new DoubanGroupUpdatePipeline())
+                        .thread(2).run();
+                if (doubanGroupDOS.size() < pageSize) {
+                    break;
+                }
+                lastId = doubanGroupDOS.get(doubanGroupDOS.size() - 1).getId();
+            } catch (Exception e) {
+                log.error("group error id:{}", lastId, e);
             }
         }
     }

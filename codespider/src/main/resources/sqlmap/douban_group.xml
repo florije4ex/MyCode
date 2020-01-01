@@ -4,6 +4,20 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cui.code.spider.dal.dao.DoubanGroupDAO">
 
+    <resultMap id="DoubanGroupDO" type="com.cui.code.spider.dal.dataobject.DoubanGroupDO">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="logo_url" property="logoUrl"/>
+        <result column="attention_user" property="attentionUser"/>
+        <result column="group_create_date" property="groupCreateDate"/>
+        <result column="owner_id" property="ownerId"/>
+        <result column="owner_name" property="ownerName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="notes" property="notes"/>
+    </resultMap>
+
     <!-- 批量保存group -->
     <!--group是MySQL关键字，使用时必须加``，换成了douban_group-->
     <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
@@ -22,5 +36,14 @@
         owner_name = #{ownerName}
         where code = #{code}
     </update>
+
+    <!-- group page query by id -->
+    <select id="pageQueryById" resultMap="DoubanGroupDO">
+        select id,code,name,logo_url,attention_user,group_create_date,owner_id,owner_name
+        from douban_group
+        where id > #{id}
+        order by id asc
+        limit #{pageSize}
+    </select>
 
 </mapper>
