@@ -1,4 +1,4 @@
-package com.code.net.test.mail;
+package com.cui.util.test;
 
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ import java.util.Properties;
 /**
  * 邮件测试
  *
- * @author cuishixiang
+ * @author CUI
  * @date 2019-01-20
  */
 public class MailTest {

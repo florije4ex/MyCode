@@ -7,8 +7,9 @@ import com.cui.code.net.model.BookCardInfo;
 import com.cui.code.net.model.CardInfo;
 import com.cui.code.net.model.SubscribeIdEnum;
 import com.cui.code.net.model.SuccessInfo;
-import com.cui.code.net.util.MailUtil;
 import com.cui.code.net.util.YamlUtil;
+import com.cui.util.mail.MailConfig;
+import com.cui.util.mail.MailUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -46,6 +47,9 @@ public class HttpTest {
 
     private static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
     private static final Map<String, String> statusMap = new HashMap<>();
+    private static final String EMAIL_CONFIG = "/config/email.properties";
+    private static final MailConfig MAIL_CONFIG = new MailConfig(EMAIL_CONFIG);
+    private static final MailUtil mailUtil = new MailUtil(MAIL_CONFIG);
 
     static {
         requestFactory.setConnectTimeout(1000);
@@ -69,7 +73,6 @@ public class HttpTest {
 
     @Test
     public void testGet() {
-
         ResponseEntity<Object> responseEntity = restTemplate.getForEntity(url, Object.class);
         Object response = responseEntity.getBody();
         System.out.println(response);
@@ -202,7 +205,7 @@ public class HttpTest {
                                             "<h4>其他信息：</h4><p>预约详情：{4}</p>",
                                     bookCardInfo.getCardInfoList().stream().map(CardInfo::getCardNo).collect(Collectors.joining(";")), name,
                                     bookCardInfo.getBookDate(), new Date(), JSON.toJSONString(bookCardInfo));
-                            MailUtil.sendMailByConfig(subject, content);
+                            mailUtil.sendMailByConfig(subject, content);
                         }
                         if (bookCardInfo.getCardInfoTempList().isEmpty()) {
                             return;
@@ -215,7 +218,7 @@ public class HttpTest {
                 }
                 if (System.currentTimeMillis() >= bookCardInfo.getEndTime().getTime()) {
                     logger.info("当前时间已超过预约截止时间：{}，停止抢票。", bookCardInfo.getEndTime());
-                    MailUtil.sendMailByConfig("停止抢票", "当前时间已超过预约截止时间：" + bookCardInfo.getEndTime() + "，停止抢票。如有需要请重新设置后再次启动。");
+                    mailUtil.sendMailByConfig("停止抢票", "当前时间已超过预约截止时间：" + bookCardInfo.getEndTime() + "，停止抢票。如有需要请重新设置后再次启动。");
                     return;
                 }
 
