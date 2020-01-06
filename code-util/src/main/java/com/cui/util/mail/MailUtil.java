@@ -20,12 +20,24 @@ public class MailUtil {
     private static final Logger logger = LoggerFactory.getLogger(MailUtil.class);
 
     private MailConfig mailConfig;
+    //1、连接邮件服务器的参数配置
+    private final Properties props = new Properties();
 
     public MailUtil(MailConfig mailConfig) {
         if (mailConfig == null) {
             mailConfig = new MailConfig();
         }
         this.mailConfig = mailConfig;
+
+        //设置用户的认证方式
+        props.setProperty("mail.smtp.auth", "true");
+        //设置传输协议
+        props.setProperty("mail.transport.protocol", "smtp");
+        //设置发件人的SMTP服务器地址
+        props.setProperty("mail.smtp.host", mailConfig.getHost());
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.port", "465");
     }
 
     public static void sendMail(List<String> toList, List<String> ccList, String subject, String content) {
@@ -39,14 +51,6 @@ public class MailUtil {
      * @param content 邮件内容，html格式的文本
      */
     public void sendMailByConfig(String subject, String content) {
-        //1、连接邮件服务器的参数配置
-        Properties props = new Properties();
-        //设置用户的认证方式
-        props.setProperty("mail.smtp.auth", "true");
-        //设置传输协议
-        props.setProperty("mail.transport.protocol", "smtp");
-        //设置发件人的SMTP服务器地址
-        props.setProperty("mail.smtp.host", mailConfig.getHost());
         //2、创建定义整个应用程序所需的环境信息的 Session 对象
         Session session = Session.getInstance(props);
         //设置调试信息在控制台打印出来
