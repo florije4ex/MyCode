@@ -1,9 +1,7 @@
 package com.cui.code.spider.pipeline;
 
 import com.cui.code.spider.dal.config.DBConfig;
-import com.cui.code.spider.dal.dao.DoubanGroupDAO;
 import com.cui.code.spider.dal.dao.DoubanTopicDAO;
-import com.cui.code.spider.dal.dataobject.DoubanGroupDO;
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
 import org.apache.ibatis.session.SqlSession;
 import us.codecraft.webmagic.ResultItems;

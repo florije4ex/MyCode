@@ -42,10 +42,40 @@ CREATE TABLE `group_member` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `notes` varchar(100) NOT NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COMMENT='小组成员：https://www.douban.com/people/XXXXXX';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小组成员：https://www.douban.com/people/XXXXXX';
 
+-- 小组话题详情
+CREATE TABLE `topic_detail` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `group_code` varchar(100) NOT NULL DEFAULT '' COMMENT '小组code',
+  `topic_id` int(11) NOT NULL DEFAULT '0' COMMENT '话题id',
+  `topic_name` varchar(100) NOT NULL DEFAULT '' COMMENT '话题名称',
+  `topic_content` text NOT NULL COMMENT '具体内容',
+  `author_id` varchar(50) NOT NULL DEFAULT '' COMMENT '作者id',
+  `author_name` varchar(50) NOT NULL DEFAULT '' COMMENT '作者昵称',
+  `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+  `collection_count` int(11) NOT NULL DEFAULT '0' COMMENT '收藏数',
+  `posted_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `notes` varchar(100) NOT NULL DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小组话题详情：https://www.douban.com/group/topic/topic_id';
 
-
+-- 关注人关联信息
+CREATE TABLE `contact` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `from_id` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '我的 id',
+  `from_name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '我的昵称',
+  `type` int(11) NOT NULL DEFAULT '0' COMMENT '联系人类型：1-我关注的人，2-关注我的人',
+  `to_id` varchar(20) CHARACTER SET utf8mb4 NOT NULL DEFAULT '' COMMENT '联系人id',
+  `to_name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '联系人昵称',
+  `is_deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除：0-默认关注中，1-已不再关注',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `notes` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='豆瓣用户联系人关注信息';
 
 ———————————————————————————————分隔线———————————————————————————————————————
 hospital库:

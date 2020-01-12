@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cui.code.spider.dal.dao.DoubanContactDAO">
+
+    <resultMap id="DoubanContactDO" type="com.cui.code.spider.dal.dataobject.DoubanContactDO">
+        <id column="id" property="id"/>
+        <result column="from_id" property="fromId"/>
+        <result column="from_name" property="fromName"/>
+        <result column="type" property="type"/>
+        <result column="to_id" property="toId"/>
+        <result column="to_name" property="toName"/>
+        <result column="is_deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="notes" property="notes"/>
+    </resultMap>
+
+    <sql id="ALL_COLUMN">
+        id,from_id,from_name,type,to_id,to_name,is_deleted,create_time,update_time,notes
+    </sql>
+
+    <insert id="saveContactBatch">
+        insert into contact(from_id,from_name,type,to_id,to_name)
+        values
+        <foreach collection="doubanContactDOList" item="contact" separator=",">
+            (#{fromId},#{fromName},#{type},#{contact.toId},#{contact.toName})
+        </foreach>
+    </insert>
+
+    <update id="updateByToIdList">
+        update contact
+        set from_name = #{fromName}, is_deleted = #{newStatus}, notes = CONCAT(notes, ';', #{notes}, CURRENT_TIMESTAMP)
+        where from_id = #{fromId}
+        and to_id in
+        <foreach collection="removeToIdList" item="toId" open="(" separator="," close=")">
+            #{toId}
+        </foreach>
+    </update>
+
+    <select id="getFirstContact" resultMap="DoubanContactDO">
+        select
+        <include refid="ALL_COLUMN"></include>
+        from contact
+        where from_id = #{fromId} and type = #{type}
+        order by id
+        limit 1
+    </select>
+
+    <!-- 根据类型查出所有的联系人 -->
+    <select id="listContactByType" resultMap="DoubanContactDO">
+        select to_id,to_name,is_deleted
+        from contact
+        where from_id = #{fromId} and type = #{type}
+    </select>
+
+</mapper>

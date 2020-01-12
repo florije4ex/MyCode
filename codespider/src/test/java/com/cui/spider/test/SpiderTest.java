@@ -1,11 +1,13 @@
 package com.cui.spider.test;
 
+import com.cui.code.spider.dal.dataobject.DoubanContactDO;
 import com.cui.code.spider.dal.dataobject.DoubanGroupDO;
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
 import com.cui.code.spider.pageprocessor.*;
 import com.cui.code.spider.pageprocessor.lynk.BookInfoPageProcessor;
 import com.cui.code.spider.pipeline.*;
 import com.cui.code.spider.pipeline.lynk.BookInfoPipeline;
+import com.cui.code.spider.service.DoubanContactService;
 import com.cui.code.spider.service.DoubanGroupService;
 import com.cui.code.spider.service.DoubanTopicService;
 import lombok.extern.slf4j.Slf4j;
@@ -208,6 +210,47 @@ public class SpiderTest {
         spider.addUrl(membersURL)
                 .addPipeline(new DoubanGroupMembersPipeline())
                 .thread(3).run();
+    }
+
+    /**
+     * 豆瓣单个人员所关注人列表信息
+     */
+    @Test
+    public void testDoubanContact() {
+        String peopleId = "豆瓣用户id";
+        String URL = "https://www.douban.com/people/" + peopleId + "/contacts";
+
+        Spider spider = Spider.create(new DoubanContactPageProcessor());
+        spider.addUrl(URL)
+                .addPipeline(new DoubanContactPipeline())
+                .thread(1).run();
+    }
+
+    /**
+     * 豆瓣单个人员所关注人列表信息
+     */
+    @Test
+    public void testDoubanContactList() {
+        String fromId = "豆瓣用户id";
+
+        DoubanContactService contactService = new DoubanContactService();
+        List<DoubanContactDO> doubanContactDOList = contactService.listContactByType(fromId, 1);
+        if (doubanContactDOList.isEmpty()) {
+            log.warn("fromId：{},没有关注任何用户，先刷新DB后再来执行", fromId);
+            return;
+        }
+
+        // todo 多线程优化
+        for (int i = 0; i < doubanContactDOList.size(); i++) {
+            DoubanContactDO contactDO = doubanContactDOList.get(i);
+            String peopleId = contactDO.getToId();
+            String URL = "https://www.douban.com/people/" + peopleId + "/contacts";
+
+            Spider spider = Spider.create(new DoubanContactPageProcessor());
+            spider.addUrl(URL)
+                    .addPipeline(new DoubanContactPipeline())
+                    .thread(1).run();
+        }
     }
 
     /**
