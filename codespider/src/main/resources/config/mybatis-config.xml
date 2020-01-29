@@ -32,6 +32,7 @@
         <mapper resource="sqlmap/group_member.xml"/>
         <mapper resource="sqlmap/topic_detail.xml"/>
         <mapper resource="sqlmap/contact.xml"/>
+        <mapper resource="sqlmap/douban/topic_reply.xml"/>
     </mappers>
 
 </configuration>

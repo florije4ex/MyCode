@@ -3,9 +3,23 @@ package com.cui.spider.test;
 import com.cui.code.spider.dal.dataobject.DoubanContactDO;
 import com.cui.code.spider.dal.dataobject.DoubanGroupDO;
 import com.cui.code.spider.dal.dataobject.DoubanTopicDO;
-import com.cui.code.spider.pageprocessor.*;
+import com.cui.code.spider.pageprocessor.DoubanContactPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanGroupMembersPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanGroupPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanGroupUpdatePageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanTopicDetailPageProcessor;
+import com.cui.code.spider.pageprocessor.DoubanTopicListPageProcessor;
+import com.cui.code.spider.pageprocessor.HospitalListPageProcessor;
+import com.cui.code.spider.pageprocessor.douban.DoubanTopicReplyPageProcessor;
 import com.cui.code.spider.pageprocessor.lynk.BookInfoPageProcessor;
-import com.cui.code.spider.pipeline.*;
+import com.cui.code.spider.pipeline.DoubanContactPipeline;
+import com.cui.code.spider.pipeline.DoubanGroupMembersPipeline;
+import com.cui.code.spider.pipeline.DoubanGroupPipeline;
+import com.cui.code.spider.pipeline.DoubanGroupUpdatePipeline;
+import com.cui.code.spider.pipeline.DoubanTopicDetailPipeline;
+import com.cui.code.spider.pipeline.DoubanTopicPipeline;
+import com.cui.code.spider.pipeline.HospitalList114Pipeline;
+import com.cui.code.spider.pipeline.douban.DoubanTopicReplyPipeline;
 import com.cui.code.spider.pipeline.lynk.BookInfoPipeline;
 import com.cui.code.spider.service.DoubanContactService;
 import com.cui.code.spider.service.DoubanGroupService;
@@ -157,6 +171,21 @@ public class SpiderTest {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 豆瓣话题回复
+     */
+    @Test
+    public void testDoubanTopicReply() {
+        Integer topicId = 101737945;
+        int start = 0;
+        Spider spider = Spider.create(new DoubanTopicReplyPageProcessor());
+        String url = "https://www.douban.com/group/topic/" + topicId + "/?start=" + start;
+
+        spider.addUrl(url)
+                .addPipeline(new DoubanTopicReplyPipeline())
+                .thread(1).run();
     }
 
     /**

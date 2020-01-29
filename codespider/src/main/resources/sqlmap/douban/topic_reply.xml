@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cui.code.spider.dal.dao.douban.DoubanTopicReplyDAO">
+
+    <resultMap id="DoubanTopicReplyDO" type="com.cui.code.spider.dal.dataobject.douban.DoubanTopicReplyDO">
+        <id column="id" property="id"/>
+        <result column="group_code" property="groupCode"/>
+        <result column="topic_id" property="topicId"/>
+        <result column="reply_id" property="replyId"/>
+        <result column="reply_name" property="replyName"/>
+        <result column="reply_time" property="replyTime"/>
+        <result column="reply_content" property="replyContent"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="is_deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="notes" property="notes"/>
+    </resultMap>
+
+    <!-- 批量保存topic reply -->
+    <insert id="saveBatchReply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `topic_reply`(group_code,topic_id,reply_id,reply_name,reply_time,reply_content)
+        VALUES
+        <foreach collection="doubanTopicReplyDOList" item="reply" separator=",">
+            (#{reply.groupCode},#{reply.topicId},#{reply.replyId},#{reply.replyName},
+            #{reply.replyTime},#{reply.replyContent})
+        </foreach>
+    </insert>
+
+</mapper>
