@@ -3,6 +3,10 @@ package com.cui.code.thread;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -80,4 +84,82 @@ public class ThreadPoolTest {
         }
     }
 
+    /**
+     * 测试线程池提交任务的时间关系：等待所有任务执行完成才会返回,没有超时
+     */
+    @Test
+    public void testInvokeAll() {
+        log.info("test start time:{}", System.currentTimeMillis());
+        List<Callable<Object>> tasks = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+
+            tasks.add(() -> {
+                int random = new Random().nextInt(10000);
+                log.info("task start time:{},sleep time:{}", System.currentTimeMillis(), random);
+                try {
+                    Thread.sleep(random);
+                } catch (InterruptedException e) {
+                    log.error("current thread error", e);
+                }
+                return Thread.currentThread().getName() + " " + System.currentTimeMillis();
+            });
+        }
+
+        log.info("task submit start time:{}", System.currentTimeMillis());
+        List<Future<Object>> futures = null;
+        try {
+            futures = executorPool.invokeAll(tasks);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        log.info("task submit end time:{}", System.currentTimeMillis());
+
+        for (Future<Object> future : futures) {
+            try {
+                Object result = future.get();
+                log.info("task result:{}", result);
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("test error time：{}", System.currentTimeMillis(), e);
+            }
+        }
+    }
+
+    /**
+     * 测试线程池提交任务的时间关系：未等到所有任务执行完成就超时
+     */
+    @Test
+    public void testInvokeAllTimeOut() {
+        log.info("test start time:{}", System.currentTimeMillis());
+        List<Callable<Object>> tasks = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            tasks.add(() -> {
+                int random = new Random().nextInt(10000);
+                log.info("task start time:{},sleep time:{}", System.currentTimeMillis(), random);
+                try {
+                    Thread.sleep(random);
+                } catch (InterruptedException e) {
+                    log.error("current thread error", e);
+                }
+                return Thread.currentThread().getName() + " " + System.currentTimeMillis();
+            });
+        }
+
+        log.info("task submit start time:{}", System.currentTimeMillis());
+        List<Future<Object>> futures = null;
+        try {
+            futures = executorPool.invokeAll(tasks, 5000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            log.error("executor pool error", e);
+        }
+        log.info("task submit end time:{}", System.currentTimeMillis());
+
+        for (Future<Object> future : futures) {
+            try {
+                Object result = future.get();
+                log.info("task result:{}", result);
+            } catch (Exception e) {
+                log.error("test error time：{}", System.currentTimeMillis(), e);
+            }
+        }
+    }
 }
