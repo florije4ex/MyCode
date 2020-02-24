@@ -13,7 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 线程池测试
@@ -45,7 +44,7 @@ public class ThreadPoolTest {
             System.out.println(Thread.currentThread().getName());
             try {
                 Thread.sleep(100000);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return System.currentTimeMillis();
@@ -54,7 +53,7 @@ public class ThreadPoolTest {
         try {
             Object result = future.get();
             log.info("task result:{}", result);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             log.error("test error time：{}", System.currentTimeMillis(), e);
         }
     }
@@ -70,7 +69,7 @@ public class ThreadPoolTest {
             System.out.println(Thread.currentThread().getName());
             try {
                 Thread.sleep(100000);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return System.currentTimeMillis();
@@ -79,7 +78,7 @@ public class ThreadPoolTest {
         try {
             Object result = future.get(10000, TimeUnit.MILLISECONDS);
             log.info("task result:{}", result);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (Exception e) {
             log.error("test error time：{}", System.currentTimeMillis(), e);
         }
     }
@@ -98,7 +97,7 @@ public class ThreadPoolTest {
                 log.info("task start time:{},sleep time:{}", System.currentTimeMillis(), random);
                 try {
                     Thread.sleep(random);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     log.error("current thread error", e);
                 }
                 return Thread.currentThread().getName() + " " + System.currentTimeMillis();
@@ -118,7 +117,7 @@ public class ThreadPoolTest {
             try {
                 Object result = future.get();
                 log.info("task result:{}", result);
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (Exception e) {
                 log.error("test error time：{}", System.currentTimeMillis(), e);
             }
         }
@@ -137,9 +136,10 @@ public class ThreadPoolTest {
                 log.info("task start time:{},sleep time:{}", System.currentTimeMillis(), random);
                 try {
                     Thread.sleep(random);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     log.error("current thread error", e);
                 }
+                log.info("^^^^^^^^^^^");
                 return Thread.currentThread().getName() + " " + System.currentTimeMillis();
             });
         }
@@ -148,7 +148,7 @@ public class ThreadPoolTest {
         List<Future<Object>> futures = null;
         try {
             futures = executorPool.invokeAll(tasks, 5000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             log.error("executor pool error", e);
         }
         log.info("task submit end time:{}", System.currentTimeMillis());
